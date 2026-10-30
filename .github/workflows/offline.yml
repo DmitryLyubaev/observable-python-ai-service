@@ -30,22 +30,35 @@ jobs:
       - name: Run canonical offline verification
         run: docker compose -p p19-check run --rm --build -T checks python scripts/verify.py
 
-      - name: Retain verification receipts and logs
+      - name: Record verification receipts and test totals
         if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: offline-verification-${{ github.sha }}
-          retention-days: 7
-          if-no-files-found: error
-          include-hidden-files: true
-          path: |
-            .local/runs/verify-*/manifest.json
-            .local/runs/verify-*/receipt.json
-            .local/runs/verify-*/junit.xml
-            .local/runs/verify-*/uv.log
-            .local/runs/verify-*/ruff.log
-            .local/runs/verify-*/ruff-format.log
-            .local/runs/verify-*/pytest.log
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          receipts = sorted(Path('.local/runs').glob('verify-*/receipt.json'))
+          if not receipts:
+              raise SystemExit('No verification receipt was produced; inspect the check-step log.')
+          for path in receipts:
+              receipt = json.loads(path.read_text())
+              manifest = json.loads((path.parent / 'manifest.json').read_text())
+              totals = dict.fromkeys(('tests', 'failures', 'errors', 'skipped'), 0)
+              junit = path.parent / 'junit.xml'
+              if junit.exists():
+                  for suite in ET.parse(junit).getroot().iter('testsuite'):
+                      for field in totals:
+                          totals[field] += int(suite.get(field, 0))
+              record = {'receipt': receipt, 'manifest': manifest, 'junit': totals}
+              print(json.dumps(record, sort_keys=True))
+              with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as summary:
+                  summary.write('## Offline verification\n\n')
+                  summary.write(f"Verifier success: `{receipt['success']}`\n\n")
+                  summary.write(f"Source: `{receipt['source']}`\n\n")
+                  summary.write(f'Test totals: `{json.dumps(totals, sort_keys=True)}`\n')
+          PY
 
       - name: Remove owned test containers
         if: always()

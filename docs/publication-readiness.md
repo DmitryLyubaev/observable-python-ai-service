@@ -11,15 +11,18 @@ container definitions, stopped studies and their measured reports are unchanged.
 
 ## Prepared checks
 
-- Official checkout v7.0.1 and upload-artifact v7.0.2 releases were resolved to full
-  immutable commit SHAs. [Checkout release](https://github.com/actions/checkout/releases/tag/v7.0.1),
-  [artifact release](https://github.com/actions/upload-artifact/releases/tag/v7.0.2).
+- Official checkout v7.0.1 was resolved to its full immutable commit SHA.
+  [Checkout release](https://github.com/actions/checkout/releases/tag/v7.0.1).
 - Portable actionlint 1.7.12 and Gitleaks 8.30.1 came from their official releases and
   were SHA-256 checked against the published checksums before execution. They are local
   review tools, not application dependencies or committed binaries.
 - actionlint passed. The workflow uses Ubuntu hosted workers, read-only repository
-  permission, no persisted checkout credential, controlled base Compose only and seven
-  explicitly named verification artifact patterns. It receives no provider key.
+  permission, no persisted checkout credential and controlled base Compose only. It
+  receives no provider key. Receipts and JUnit totals go to job logs/run summary rather
+  than uploaded artifacts; no cache, artifact storage or paid runner is requested.
+  [GitHub billing documentation](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+  distinguishes free standard public-repository runners and logs/summaries from stored
+  artifacts. This preparation does not change an account-wide billing setting.
 - The reachable history scan first flagged two environment-variable identifiers in
   code that rejects credential-bearing environments. Both exact source lines were
   inspected. `.gitleaksignore` contains only those historical fingerprints; it does
@@ -30,11 +33,30 @@ container definitions, stopped studies and their measured reports are unchanged.
 - Tracked runtime-source digest remains
   `669f99160ff70b9e393835278a57182acc5a3e3c91b644076e56a20550c7430d`, matching the last
   134-test candidate/primary verification and actual follow-up. No new provider call
-  or credential access is part of publication preparation.
+  or provider credential access is part of publication preparation.
 
-Fresh Linux checkout verification, the independent review and final payload identity
-will be recorded after completion. Local verification is separate from hosted Actions
-checkout/artifact delivery, which must be observed after actual publication.
+## Fresh Linux verification
+
+An exact Git archive of presentation commit `9b3a75a` was extracted into a fresh Linux
+filesystem directory, without Windows working-copy files, credentials or ignored raw
+artifacts. Setup generated fresh local-only credentials. A private Compose volume-name
+override isolated this cold test database while keeping the workflow's setup/verifier/
+cleanup commands and the application configuration unchanged. Both existing project
+database volumes were retained.
+
+The canonical verifier passed **134 tests in 96.19 seconds**, plus lock/lint/format,
+receipt `verify-af4da5345d63428b83ccbe1d9de964ac`. Its runtime-source digest equals the
+recorded `669f9916...` source above. The temporary owned test volume was removed after
+copying the complete private evidence; no original study was opened or reset.
+
+The final workflow replaces artifact upload with receipt logging/run summary. Its exact
+summary shell block was executed directly against those fresh Linux receipts: success,
+134 tests, zero failures/errors/skips and the correct source were recorded. actionlint
+passed again. This reporting-only change leaves the tested verifier/application bytes
+unchanged. Local verification is separate from hosted Actions checkout/run-summary
+delivery, which must be observed after actual publication.
+
+Independent review and final payload/preservation identity are recorded after completion.
 
 ## Approval boundary
 

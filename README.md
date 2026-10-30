@@ -111,7 +111,8 @@ verification rather than silently skipping integration tests.
 
 The [prepared GitHub workflow](.github/workflows/offline.yml) uses the same verifier on
 an Ubuntu hosted runner, generated local-only credentials and controlled providers.
-It receives no provider key and uploads only named verification receipts/logs. A passing
+It receives no provider key and records receipts/test totals in job logs and the run
+summary, with no artifact upload. A passing
 hosted run will be reported only after it actually exists.
 
 Checks and lifecycle tooling use the local Docker socket to control exact owned
