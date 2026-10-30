@@ -27,6 +27,10 @@ def investigate(job_id):
             print("worker_provider_configuration_invalid", flush=True)
             return
         store = JobStore()
+        if mode == "live":
+            from p19.live import LiveStudy
+
+            LiveStudy(store).require_preflight()
         run_job(
             job_id,
             socket.gethostname(),

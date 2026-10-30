@@ -2,6 +2,7 @@
 .worktrees
 .venv
 .env
+.secrets
 .local
 .superpowers
 __pycache__

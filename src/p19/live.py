@@ -181,6 +181,28 @@ class LiveStudy:
                 {"id": STUDY, "reason": reason},
             )
 
+    def require_preflight(self):
+        manifest = self.status()["manifest"]
+        if not manifest:
+            raise LiveGuard("live_preflight_missing")
+        approval = manifest["approval"]
+        try:
+            path = Path(approval["preflight_receipt"]).resolve()
+            if not path.is_relative_to(Path(".local").resolve()):
+                raise LiveGuard("live_preflight_path_invalid")
+            raw = path.read_bytes()
+            receipt = json.loads(raw)
+            if (
+                digest(raw) != approval["preflight_sha256"]
+                or receipt["status"] != "passed"
+                or receipt["model"] != MODEL
+                or receipt["source_digest"] != manifest["source_digest"]
+                or receipt["counts"] != [row["input_estimate"] for row in manifest["cases"]]
+            ):
+                raise LiveGuard("live_preflight_changed")
+        except (KeyError, OSError, ValueError, TypeError):
+            raise LiveGuard("live_preflight_unverified") from None
+
     def assess(self, case_id, decision, notes):
         if (
             decision not in {"pass", "fail"}

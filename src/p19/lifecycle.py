@@ -10,6 +10,40 @@ from p19.jobs import JobStore
 from p19.recovery import recover_worker
 
 
+def validated_volumes(attrs):
+    environment = dict(entry.split("=", 1) for entry in attrs["Config"].get("Env", []))
+    live = (
+        environment.get("P19_PROVIDER") == "live"
+        and environment.get("P19_LIVE_STUDY") == "p19-real-20261030"
+    )
+    if {"ANTHROPIC_API_KEY", "P19_CLAUDE_API_KEY"} & environment.keys():
+        raise RuntimeError("provider_secret_in_worker_environment")
+    locals_ = [mount for mount in attrs["Mounts"] if mount["Destination"] == "/app/.local"]
+    if len(locals_) != 1:
+        raise RuntimeError("unexpected_worker_mount")
+    secret_source = Path(locals_[0]["Source"]).parent / ".secrets" / "claude-api-key"
+    volumes = {}
+    found_secret = False
+    for mount in attrs["Mounts"]:
+        if mount["Type"] != "bind":
+            raise RuntimeError("unexpected_worker_mount")
+        if mount["Destination"] == "/app/.local" and mount.get("RW") is True:
+            mode = "rw"
+        elif (
+            live
+            and mount["Destination"] == "/run/secrets/claude_api_key"
+            and mount.get("RW") is False
+            and Path(mount["Source"]) == secret_source
+        ):
+            mode, found_secret = "ro", True
+        else:
+            raise RuntimeError("unexpected_worker_mount")
+        volumes[mount["Source"]] = {"bind": mount["Destination"], "mode": mode}
+    if live and not found_secret:
+        raise RuntimeError("live_worker_secret_missing")
+    return volumes
+
+
 def restart_worker(container_id, store, project, *, barrier=None, profile="success"):
     client = docker.from_env(timeout=10)
     with store.db.engine.connect() as conn:
@@ -41,11 +75,7 @@ def restart_worker(container_id, store, project, *, barrier=None, profile="succe
             networks = list(attrs["NetworkSettings"]["Networks"])
             if networks != [f"{project}_default"]:
                 raise RuntimeError("unexpected_worker_network")
-            volumes = {}
-            for mount in attrs["Mounts"]:
-                if mount["Destination"] != "/app/.local" or mount["Type"] != "bind":
-                    raise RuntimeError("unexpected_worker_mount")
-                volumes[mount["Source"]] = {"bind": mount["Destination"], "mode": "rw"}
+            volumes = validated_volumes(attrs)
             owner = attrs["Config"]["Hostname"]
             if owner != old.id[:12]:
                 raise RuntimeError("worker_identity_mismatch")

@@ -1,0 +1,32 @@
+{
+  "services": {
+    "worker": {
+      "environment": {
+        "P19_PROVIDER": "live",
+        "P19_LIVE_STUDY": "p19-real-20261030",
+        "P19_CLAUDE_KEY_FILE": "/run/secrets/claude_api_key"
+      },
+      "secrets": ["claude_api_key"]
+    },
+    "live-admin": {
+      "build": ".",
+      "env_file": ".env",
+      "environment": {
+        "P19_DATABASE_URL": "postgresql+psycopg://p19:${P19_DB_PASSWORD}@postgres/p19",
+        "P19_REDIS_URL": "redis://redis:6379/0",
+        "P19_PROJECT": "${COMPOSE_PROJECT_NAME:-p19-demo}",
+        "P19_CLAUDE_KEY_FILE": "/run/secrets/claude_api_key"
+      },
+      "volumes": ["./.local:/app/.local"],
+      "secrets": ["claude_api_key"],
+      "command": ["python", "scripts/live.py", "status"],
+      "depends_on": {
+        "postgres": {"condition": "service_healthy"},
+        "redis": {"condition": "service_healthy"}
+      }
+    }
+  },
+  "secrets": {
+    "claude_api_key": {"file": "./.secrets/claude-api-key"}
+  }
+}
