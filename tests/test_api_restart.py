@@ -31,7 +31,9 @@ def test_actual_api_process_restart_preserves_same_job_result_and_events(store):
 
     def start():
         process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        deadline = time.monotonic() + 8
+        # This acceptance test proves state retention across a real restart;
+        # interpreter/import startup is not an eight-second service SLA.
+        deadline = time.monotonic() + 30
         while time.monotonic() < deadline:
             try:
                 if httpx.get(f"http://127.0.0.1:{port}/health", timeout=0.3).status_code == 200:

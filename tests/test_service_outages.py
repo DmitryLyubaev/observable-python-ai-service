@@ -10,7 +10,7 @@ from test_api import serve
 def test_actual_database_outage_is_safe_503(store):
     container = docker.from_env().containers.get(f"{os.environ['P19_PROJECT']}-postgres-1")
     with serve(store) as client:
-        container.stop(timeout=2)
+        container.stop(timeout=10)
         try:
             response = client.post(
                 "/investigations", json=record(), headers={"Idempotency-Key": "db-down"}
@@ -19,14 +19,17 @@ def test_actual_database_outage_is_safe_503(store):
             assert "password" not in response.text.lower()
         finally:
             container.start()
-            until = time.monotonic() + 10
+            until = time.monotonic() + 30
+            ready = False
             while time.monotonic() < until:
                 try:
                     store.get("missing")
                 except Exception as exc:
                     if type(exc).__name__ == "JobNotFound":
+                        ready = True
                         break
                 time.sleep(0.1)
+            assert ready, "database_did_not_recover_after_outage_test"
 
 
 def test_actual_broker_restart_preserves_queued_identity(store):
