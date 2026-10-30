@@ -51,6 +51,9 @@ def canonical(value):
 
 
 def build_request(record, evidence):
+    for row in evidence["records"]:
+        if row.get("export_id") != record["export_id"] or row.get("sale_id") != record["sale_id"]:
+            raise ValueError("evidence_identity_mismatch")
     return canonical(
         {
             "model": MODEL,

@@ -52,7 +52,12 @@ def inputs():
     return cases[1], {
         "receiver_outcome": "received",
         "records": [
-            {"id": "ev_receipt", "fact": {"kind": "receipt", "receiver_reference": "receipt_101"}}
+            {
+                "id": "ev_receipt",
+                "export_id": "export_1",
+                "sale_id": "sale_1",
+                "fact": {"kind": "receipt", "receiver_reference": "receipt_101"},
+            }
         ],
     }
 
@@ -100,6 +105,30 @@ def test_request_excludes_reference_answers():
     assert request["model"] == "claude-haiku-5-5"
     assert request["max_tokens"] == 1024 and request["stream"] is False
     assert request["service_tier"] == "standard_only"
+
+
+@pytest.mark.parametrize("field", ["export_id", "sale_id"])
+@pytest.mark.parametrize("value", ["foreign", None, "missing"])
+def test_request_refuses_missing_or_foreign_bindings(field, value):
+    from p19.claude import build_request
+
+    record, evidence = inputs()
+    evidence["records"][0].update(export_id=record["export_id"], sale_id=record["sale_id"])
+    if value == "missing":
+        evidence["records"][0].pop(field)
+    else:
+        evidence["records"][0][field] = value
+    with pytest.raises(ValueError, match="^evidence_identity_mismatch$"):
+        build_request(record, evidence)
+
+
+def test_empty_evidence_still_builds_unresolved_request():
+    from p19.claude import build_request
+
+    record = json.loads(open("fixtures/cases.json").read())[2]
+    payload = build_request(record, {"receiver_outcome": "unresolved", "records": []})
+    supplied = json.loads(json.loads(payload)["messages"][0]["content"])
+    assert supplied == {"failure": record, "records": []}
 
 
 def test_reply_usage_and_result(tmp_path):

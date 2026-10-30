@@ -75,7 +75,12 @@ def make_manifest(store, approval, counts):
     for record, count in zip(fixture_cases(), counts, strict=True):
         evidence = lookup(record, store)
         expected = [
-            {"id": row["id"], "fact": row["fact"]}
+            {
+                "id": row["id"],
+                "export_id": row["export_id"],
+                "sale_id": row["sale_id"],
+                "fact": row["fact"],
+            }
             for row in fixture_evidence
             if row["export_id"] == record["export_id"] and row["sale_id"] == record["sale_id"]
         ]

@@ -25,7 +25,7 @@ def lookup(record, store):
             dict(row)
             for row in conn.execute(
                 text(
-                    "SELECT id,fact FROM evidence_records WHERE export_id=:export_id AND sale_id=:sale_id ORDER BY id LIMIT 8"
+                    "SELECT id,export_id,sale_id,fact FROM evidence_records WHERE export_id=:export_id AND sale_id=:sale_id ORDER BY id LIMIT 8"
                 ),
                 record,
             ).mappings()
