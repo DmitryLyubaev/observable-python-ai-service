@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-30",
+  "scope": "bounded synthetic CV/portfolio demonstration",
+  "integration": "local main, user option 1",
+  "merged_candidate": "5aef63d",
+  "canonical_command": "docker compose -p p19-check run --rm --build checks python scripts/verify.py",
+  "receipt_id": "verify-d2c812b0a0eb493e8fbdc369f0c25b91",
+  "receipt": {
+    "success": true,
+    "commands": [
+      {
+        "command": [
+          "uv",
+          "lock",
+          "--check"
+        ],
+        "exit": 0
+      },
+      {
+        "command": [
+          "ruff",
+          "check",
+          "src",
+          "tests",
+          "scripts"
+        ],
+        "exit": 0
+      },
+      {
+        "command": [
+          "ruff",
+          "format",
+          "--check",
+          "src",
+          "tests",
+          "scripts"
+        ],
+        "exit": 0
+      },
+      {
+        "command": [
+          "pytest",
+          "-q",
+          "--junitxml=.local/runs/verify-d2c812b0a0eb493e8fbdc369f0c25b91/junit.xml"
+        ],
+        "exit": 0
+      }
+    ],
+    "source": "9e239cc96914b2f3bc05fc66494f3f10d85be611766f303144762bf93ef52c15"
+  },
+  "tests": 54,
+  "pytest_seconds": 70.77,
+  "command_exit": 0,
+  "archived_files": 196,
+  "archive_hash_mismatches": 0,
+  "configuration_matches_archive": true,
+  "docker_context_dummy_probe": {
+    "after": "excluded worktree canary",
+    "before": "included worktree canary"
+  },
+  "runner_regression": {
+    "cases": [
+      "exit 0 output",
+      "exit 7 output",
+      "timeout 124 partial output and marker"
+    ],
+    "green": "1 passed",
+    "red": "missing run_check"
+  },
+  "earlier_primary_failures": [
+    "Docker socket reset during WSL restart",
+    "two pytest 240-second timeouts; cause unproven"
+  ],
+  "diagnostics": {
+    "verbose_seconds": 66.98,
+    "verbose_tests": 53,
+    "instrumented_nested_seconds": 66.03,
+    "instrumented_nested_tests": 53
+  },
+  "new_load_submissions": 0,
+  "external_provider_calls": 0,
+  "public_push": false,
+  "retained": [
+    "feature branch and worktree",
+    "ignored scratch",
+    "both database volumes",
+    "original failed and diagnostic logs"
+  ],
+  "owned_running_containers": 0,
+  "owned_listeners": 0,
+  "integration_shell_closed": true
+}

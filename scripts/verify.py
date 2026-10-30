@@ -11,6 +11,18 @@ import docker
 from p19.acceptance import manifest, write_once
 
 
+def run_check(command, log_path, timeout=240):
+    with log_path.open("w") as output:
+        try:
+            result = subprocess.run(
+                command, stdout=output, stderr=subprocess.STDOUT, text=True, timeout=timeout
+            )
+        except subprocess.TimeoutExpired:
+            output.write("\ncheck_timeout\n")
+            return 124
+    return result.returncode
+
+
 def main():
     project = os.environ["P19_PROJECT"]
     if project != "p19-check":
@@ -27,12 +39,12 @@ def main():
             ["ruff", "format", "--check", "src", "tests", "scripts"],
             ["pytest", "-q", f"--junitxml={run / 'junit.xml'}"],
         ]:
-            result = subprocess.run(command, capture_output=True, text=True, timeout=240)
             name = command[0] + ("-format" if "format" in command else "")
-            (run / (name + ".log")).write_text(result.stdout + result.stderr)
-            print((result.stdout + result.stderr)[-2500:], flush=True)
-            outcomes.append({"command": command, "exit": result.returncode})
-            if result.returncode:
+            log = run / (name + ".log")
+            status = run_check(command, log)
+            print(log.read_text()[-2500:], flush=True)
+            outcomes.append({"command": command, "exit": status})
+            if status:
                 break
         success = all(row["exit"] == 0 for row in outcomes) and len(outcomes) == 4
         write_once(

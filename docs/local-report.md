@@ -2,7 +2,10 @@
 
 30 October 2026, Australia/Brisbane. Bounded synthetic CV/portfolio demonstration.
 Local acceptance and one independent whole-branch review/correction pass are complete.
-Integration/publication remain separate choices.
+Local main integration is complete. The primary-checkout canonical command passed 54
+tests plus lock/lint/format after packaging and verifier-reporting corrections.
+[Integration record](integration-record.md) preserves the original failed attempts,
+private-evidence preservation and current fingerprint. Publication remains separate.
 
 ## Measured outcome
 
@@ -153,4 +156,5 @@ Final application closeout verified zero owned running containers and no listene
 8199/16699, with two database volumes retained. Automatic approval review rejected the
 subsequent combined command to stop the bounded read-only diagnostic monitor and remove
 the ignored plan scratch directory, stating "blocked by policy". Neither action was
-retried. Scratch remains retained; the monitor has its original four-hour timeout.
+retried. Scratch remains retained. The monitor originally kept its four-hour timeout;
+after a later WSL restart it was no longer running. The integration record gives current closeout.
