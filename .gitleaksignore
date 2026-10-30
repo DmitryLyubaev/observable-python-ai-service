@@ -1,0 +1,4 @@
+# Two exact historical false positives: environment-variable identifiers in the
+# guard that rejects provider credentials in environment variables. No key values.
+bc68f71caceaf5a0583283e94f18f73906425a4f:src/p19/lifecycle.py:generic-api-key:19
+bc68f71caceaf5a0583283e94f18f73906425a4f:scripts/live.py:generic-api-key:31
