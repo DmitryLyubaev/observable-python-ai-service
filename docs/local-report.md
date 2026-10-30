@@ -148,3 +148,9 @@ proof that the exact old worker stopped; there is no partition-tolerant failover
 exactly-once inference or proof that in-flight cancellation stops billing. Jaeger storage
 is transient. Real-model usefulness, provider access/costs, hosted CI, remote HTTPS,
 publication and customer production use remain unproven.
+
+Final application closeout verified zero owned running containers and no listeners on
+8199/16699, with two database volumes retained. Automatic approval review rejected the
+subsequent combined command to stop the bounded read-only diagnostic monitor and remove
+the ignored plan scratch directory, stating "blocked by policy". Neither action was
+retried. Scratch remains retained; the monitor has its original four-hour timeout.

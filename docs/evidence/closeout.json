@@ -10,5 +10,8 @@
   ],
   "running_check_containers": 0,
   "status": "owned runtime stopped; evidence retained",
-  "listeners_on_8199_16699": 0
+  "listeners_on_8199_16699": 0,
+  "optional_cleanup": "Automatic approval review rejected combined monitor termination/scratch removal: blocked by policy. Not executed or retried.",
+  "retained_diagnostic_monitor": "Read-only Docker events monitor, original timeout 14400 seconds; active at last read-only observation.",
+  "retained_scratch": ".superpowers/sdd/2026-10-30-observable-python-ai-service-local"
 }

@@ -23,3 +23,9 @@ No real provider, cloud resource, public repository or hosted workflow was used.
 Final verification: 53 tests and lint/format/lock passed at runtime fingerprint 11a66bf2f254afc4cf93faacdeff262186706b0d07c084734fdd4181823dd483. Corrected three-case and five-scenario demos passed at the same fingerprint. The single original load remains bound to 4d4f3f1a4d56df69998c5adb4d9f0439fa66f17c292c32273375444c1c5bd00a and was not repeated.
 
 The full review findings, regrading, twelve decisions on set-aside behavior and deferred Minor are recorded in [review closeout](review-closeout.md).
+
+Final optional cleanup command was rejected by automatic approval review as "blocked by
+policy". That command combined verified-owner diagnostic-monitor termination and removal
+of the exact ignored plan workspace. It was not executed and was not retried. Application
+containers/listeners were already stopped; scratch and the bounded read-only monitor
+remain, with the monitor's original four-hour timeout. No evidence was deleted.
