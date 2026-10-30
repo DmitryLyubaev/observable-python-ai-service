@@ -1,19 +1,21 @@
 # Local investigation-service evidence
 
 30 October 2026, Australia/Brisbane. Bounded synthetic CV/portfolio demonstration.
-Local acceptance is recorded below; independent whole-branch review is pending.
+Local acceptance and one independent whole-branch review/correction pass are complete.
+Integration/publication remain separate choices.
 
 ## Measured outcome
 
-The canonical Linux command passed **42 tests**, Ruff lint/format and the frozen lock
-check. The final pre-review run took 57.55 seconds for pytest. The actual CLI returned
+The corrected canonical Linux command passed **53 tests**, Ruff lint/format and the frozen
+lock check; pytest took 74.32 seconds. The reviewed candidate had 42 passing tests.
+The actual CLI returned
 the expected receiver outcomes for all three business cases. A separate CLI/lifecycle
 demonstration passed five scenarios: cancellation before dispatch, CLI disconnect and
 resume, cancellation after dispatch followed by timeout, pre-dispatch worker crash and
 crash after a response but before its durable commit. These are automated assistant-run
 observations, not human acceptance or real-model evaluation.
 
-One load sample submitted **24 unique requests at concurrency four**, with a configured
+The original pre-correction load sample submitted **24 unique requests at concurrency four**, with a configured
 200 ms controlled-provider delay. Eight were admitted and succeeded; sixteen received
 429 at the admission boundary. There were eight provider attempts, maximum eight active
 admitted jobs and maximum one active provider call. No favorable repeat was selected.
@@ -38,14 +40,19 @@ cost estimate. No provider account, key, paid budget or cloud resource was neede
 
 ## Provenance and reproduction
 
-The business demo, failure demo, load sample and final canonical manifest share runtime
+The original business demo, failure demo, load sample and pre-review canonical manifest share runtime
 fingerprint `4d4f3f1a4d56df69998c5adb4d9f0439fa66f17c292c32273375444c1c5bd00a`.
 The fingerprint covers executable Python/SQL, tests, scripts, fixtures, lockfile,
 pyproject, Dockerfile and Compose bytes; it excludes this report and other prose/media.
 Git branch is `codex/local-demo`, based on initial commit `d9c3aa1`. Task 6 source is
-`f60c6c2`; the Task 7 commit adds the fingerprinted acceptance scripts and tests.
+`f60c6c2`; `2b3fd7a` adds the fingerprinted acceptance scripts and tests. Review corrections
+are committed at `362b193` and verified at runtime fingerprint
+`11a66bf2f254afc4cf93faacdeff262186706b0d07c084734fdd4181823dd483`.
+The corrected canonical check and fresh three-case/five-scenario demos share that newer
+fingerprint. The original load was not repeated; its measurements and old source identity
+remain unchanged. No final-source load-performance measurement is claimed.
 
-Actual demo image configuration IDs:
+Original load/demo image configuration IDs:
 
 - API: `sha256:3dd4fa9a639f762d8f6e02554e250640063ac99ea219f2d8577ccc74b041de84`
 - Dispatcher: `sha256:3ba709820ef4409812a021720e881f010ffad3a3f1c8cdeef6f5531258ba3b9f`
@@ -53,6 +60,9 @@ Actual demo image configuration IDs:
 
 Immutable base-image manifest digests and the full dependency lock are checked in.
 Image IDs differ by build configuration; the runtime fingerprint binds their source.
+Corrected demo images were API `sha256:a16204fb6a785cf07f0363f1d234390c5452f16aca03cce8b98667865ce4c168`,
+dispatcher `sha256:3c2e406a9294759474c6c0b548a5308cc3a122d9336b76e135442c5f018b8d95`
+and worker `sha256:076cad7a5afa043b8718442f9e03e45073965816eff66fecefbe098aeb25ba64`.
 
 ```sh
 docker compose -p p19-check run --rm --build checks python scripts/verify.py
@@ -74,6 +84,10 @@ Original receipts are retained privately:
 [Safe aggregate](evidence/local-summary.json) contains the measured counts and manifests;
 [additional metrics](evidence/lookup-admission-metrics.json) were read from the original
 persisted load jobs without another submission or provider invocation.
+Corrected receipts are `verify-8e93ec1c8790491fb196f69f5e3d1725`,
+`demo-9972c27b17d54e4f97e3dd719d33a34a` and
+`failure-demo-fce51e794b004d809122a32f16232d2c` under the same ignored directory.
+[Corrected safe aggregate](evidence/corrected-summary.json) binds those current results.
 
 ## Acceptance observations
 
@@ -96,10 +110,27 @@ The viewer observation showed a 12-span investigation across three services, inc
 `investigation.admit`, `queue.publish`, `worker.execute`, `evidence.lookup` and
 `provider.attempt`. [Success trace](evidence/success-trace.json) and
 [cancellation/timeout trace](evidence/timeout-trace.jsonl) were exported before shutdown.
+Those original examples and the screenshot remain historical; the
+[corrected success trace](evidence/corrected-success-trace.json) and
+[corrected timeout trace](evidence/corrected-timeout-trace.jsonl) are separately retained.
 
 ![Observed local Jaeger timeline](evidence/trace-viewer.png)
 
 ## Original failures and limits
+
+One fresh review found no Critical, three Important and two Minor findings. The API
+exception telemetry leak, expired dispatch-budget boundary and missing failed-load
+receipts were reproduced and fixed in one regression-tested pass. New checks cover
+chained API/Celery errors, deadlines inside/after the dispatch transaction, bounded lock
+waits, late replies, partial transport observations and immutable run-name reservation.
+An additional real API subprocess restart test closes the report's previous evidence
+gap. The corrected suite passed 53 tests; no second independent review was performed.
+[Review disposition and rulings](review-closeout.md) record the exact scope.
+
+Deferred Minor: status, cancellation and recovery observations do not yet have explicit
+span links to the original investigation. Persisted job IDs correlate their database
+history. The main admission/queue/lookup/provider trace is evidenced; universal tracing
+of every follow-up/recovery operation is not claimed.
 
 - The initial Windows dependency download failed certificate validation. Command-scoped
   Windows native certificate trust resolved it; TLS verification was not disabled.

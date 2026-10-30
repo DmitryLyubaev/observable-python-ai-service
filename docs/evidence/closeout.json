@@ -1,0 +1,14 @@
+{
+  "raw_evidence_retained": ".local",
+  "source_commit": "362b193",
+  "running_demo_containers": 0,
+  "verified_at_brisbane": "2026-10-30T12:07:17.1331478+10:00",
+  "source_digest": "11a66bf2f254afc4cf93faacdeff262186706b0d07c084734fdd4181823dd483",
+  "retained_volumes": [
+    "p19-demo_database",
+    "p19-check_database"
+  ],
+  "running_check_containers": 0,
+  "status": "owned runtime stopped; evidence retained",
+  "listeners_on_8199_16699": 0
+}

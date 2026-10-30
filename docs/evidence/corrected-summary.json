@@ -1,0 +1,37 @@
+{
+  "real_provider_calls": 0,
+  "source_digest": "11a66bf2f254afc4cf93faacdeff262186706b0d07c084734fdd4181823dd483",
+  "canonical_status": "passed",
+  "demo_cases": 3,
+  "load_sample": "Original sample retained, not repeated after corrections",
+  "failure_scenarios": 5,
+  "source_commit": "362b193",
+  "canonical_tests": 53,
+  "failure_states": [
+    {
+      "attempts": 0,
+      "scenario": "cancel_before_dispatch",
+      "state": "cancelled"
+    },
+    {
+      "attempts": 1,
+      "scenario": "cli_disconnect_and_resume",
+      "state": "succeeded"
+    },
+    {
+      "attempts": 1,
+      "scenario": "cancel_after_dispatch_timeout",
+      "state": "outcome_unknown"
+    },
+    {
+      "attempts": 0,
+      "scenario": "crash_before_dispatch",
+      "state": "interrupted"
+    },
+    {
+      "attempts": 1,
+      "scenario": "crash_after_reply_before_commit",
+      "state": "outcome_unknown"
+    }
+  ]
+}
