@@ -205,7 +205,9 @@ class JobStore:
     def observations(self, job_id=None):
         with self.db.engine.connect() as conn:
             rows = conn.execute(
-                text("SELECT * FROM observations WHERE (:id IS NULL OR job_id=:id) ORDER BY id"),
+                text(
+                    "SELECT * FROM observations WHERE (CAST(:id AS text) IS NULL OR job_id=:id) ORDER BY id"
+                ),
                 {"id": job_id},
             ).mappings()
             return [dict(row) for row in rows]
