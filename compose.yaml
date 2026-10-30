@@ -1,0 +1,56 @@
+x-app: &app
+  build: .
+  env_file: .env
+  environment: &environment
+    P19_DATABASE_URL: postgresql+psycopg://p19:${P19_DB_PASSWORD}@postgres/p19
+    P19_REDIS_URL: redis://redis:6379/0
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+    P19_PROJECT: ${COMPOSE_PROJECT_NAME:-p19-demo}
+  volumes:
+    - ./.local:/app/.local
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5
+    environment:
+      POSTGRES_USER: p19
+      POSTGRES_PASSWORD: ${P19_DB_PASSWORD}
+      POSTGRES_DB: p19
+    volumes: [database:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U p19 -d p19']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  redis:
+    image: redis:7.4-bookworm@sha256:b6b6e3dc0c0952737748e55d5d885272840c7e42ba41ab1d5489f693419882f5
+    command: [redis-server, --maxmemory, 64mb, --maxmemory-policy, noeviction]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  checks:
+    <<: *app
+    user: root
+    environment:
+      <<: *environment
+      P19_TEST: '1'
+    volumes:
+      - ./.local:/app/.local
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./fixtures:/app/fixtures:ro
+      - ./scripts:/app/scripts:ro
+    command: [uv, run, --frozen, pytest, -q]
+  tools:
+    <<: *app
+    command: [python, -m, p19.cli, --help]
+volumes:
+  database:
