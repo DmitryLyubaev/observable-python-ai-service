@@ -6,6 +6,10 @@ Local main integration is complete. The primary-checkout canonical command passe
 tests plus lock/lint/format after packaging and verifier-reporting corrections.
 [Integration record](integration-record.md) preserves the original failed attempts,
 private-evidence preservation and current fingerprint. Publication remains separate.
+This report covers the historical controlled-provider milestone. The later
+[real-model observation](live-report.md) records two actual inference requests, one
+semantic failure, one unrun case and known usage cost; it does not relabel this report's
+original controlled timings or claims.
 
 ## Measured outcome
 

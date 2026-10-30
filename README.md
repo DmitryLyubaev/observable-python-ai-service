@@ -7,8 +7,10 @@ controlled provider returns a structured explanation with evidence references.
 The three cases are explicit rejection, receipt despite a timeout, and unresolved
 receiver outcome. There is no resend, accounting change or autonomous remediation.
 The default provider is deterministic. An explicit live overlay supports the separately
-approved three-case Haiku study. No production capacity or customer adoption is claimed;
-real-provider results must be read from the dated study report once executed.
+approved three-case Haiku study. Its [actual sample](docs/live-report.md) stopped after
+the second case: one passed, one failed semantic validation and one was unrun, at
+USD0.0003902 estimated known API usage cost before tax/FX. No production capacity or
+customer adoption is claimed.
 
 The workflow uses FastAPI, PostgreSQL, Redis/Celery, OpenTelemetry and a local Jaeger
 viewer. PostgreSQL owns job state, attempts and replayable progress. SSE disconnects
@@ -83,6 +85,9 @@ costed acceptance scope.
 The optional live mode is one fixed study, `p19-real-20261030`: Claude Haiku 5.5,
 three ordered synthetic cases, no inference retries and a USD2 cumulative API-usage
 allowance before tax/FX. It is a bounded demonstration, not a general spend platform.
+This study is now stopped. The following commands document its original procedure;
+reinitialization and further paid calls are refused. See the dated report for the
+observed receipt-identity context gap and retained original failure.
 The default setup, checks and examples above remain keyless and controlled.
 
 The owner supplies a personal API key in ignored `.secrets/claude-api-key`, with local

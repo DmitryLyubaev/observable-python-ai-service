@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-30",
+  "scope": "bounded synthetic CV/portfolio demonstration",
+  "sample_outcome": "failed_stopped_after_second_case",
+  "provider": "Claude API",
+  "model": "claude-haiku-5-5",
+  "code_revision": "ce64c1383b5e8e837aab33411070cb6c2f0b6de7",
+  "runtime_source_digest": "b6f775dd720b2e2e861717b76ee97cb5cc6511d621f76d8cebde926fc1fe55ac",
+  "overlay_sha256": "00de13d3eb938313625d2c1b73ff63aaede495cec4ef683fbf243c5cf94d8e92",
+  "canonical": {
+    "tests": 109,
+    "pytest_seconds": 135.2,
+    "lock_lint_format": "passed",
+    "receipt": "verify-a90e13e0f8cb4e1fa4938425fd3556ac"
+  },
+  "review": {
+    "critical": 0,
+    "important": 1,
+    "minor": 1,
+    "important_fixed": 1,
+    "reviews": 1,
+    "deferred_minor": "partial CLI output on timeout; committed database events permit readback"
+  },
+  "preflight": {
+    "model_metadata_requests": 1,
+    "token_count_requests": 3,
+    "token_count_estimates": [
+      732,
+      735,
+      698
+    ]
+  },
+  "sample": {
+    "frozen_cases": 3,
+    "inference_requests": 2,
+    "automatic_retries": 0,
+    "paid_warmups": 0,
+    "automated_passed": 1,
+    "automated_failed": 1,
+    "unrun": [
+      "export_2"
+    ],
+    "assistant_passed": 1,
+    "human_assessments": 0,
+    "input_tokens": 1467,
+    "output_tokens": 487,
+    "known_api_usage_cost_usd": "0.0003902",
+    "unresolved_reservations_usd": "0",
+    "approved_allowance_usd": "2",
+    "unspent_allowance_usd": "1.9996098"
+  },
+  "cases": [
+    {
+      "case_id": "export_0",
+      "job_state": "succeeded",
+      "error": null,
+      "returned_receiver_outcome": "rejected",
+      "expected_receiver_outcome": "rejected",
+      "evidence_ids": [
+        "ev_reject"
+      ],
+      "assistant_assessment": "pass",
+      "input_tokens": 732,
+      "output_tokens": 218,
+      "thinking_tokens_included": 0,
+      "known_api_usage_cost_usd": "0.0001822",
+      "provider_attempt_seconds": 4.347890546000144,
+      "queue_seconds": 3.350728,
+      "completion_seconds": 7.831596,
+      "provider_receipt_sha256": "6e456d065cbb9742f3d7811a83abdd7dc8f7814e5cccf3e4ba24bf8e1887366e",
+      "trace_ids": [
+        "089e9d4f3e543d22682810a898925985"
+      ],
+      "trace_span_count": 12,
+      "trace_services": [
+        "p19-api",
+        "p19-dispatcher",
+        "p19-worker"
+      ]
+    },
+    {
+      "case_id": "export_1",
+      "job_state": "failed",
+      "error": "invalid_provider_output",
+      "returned_receiver_outcome": "unresolved",
+      "expected_receiver_outcome": "received",
+      "evidence_ids": [],
+      "assistant_assessment": null,
+      "input_tokens": 735,
+      "output_tokens": 269,
+      "thinking_tokens_included": 0,
+      "known_api_usage_cost_usd": "0.000208",
+      "provider_attempt_seconds": 2.3300181199997496,
+      "queue_seconds": 1.115053,
+      "completion_seconds": 3.502134,
+      "provider_receipt_sha256": "ee5c49366640e79c2d430593e619e67f7d0bd7b58e1d00f66ad45fc8d59dd0cd",
+      "trace_ids": [
+        "952f34e5680f6ef86c8321599b07890d"
+      ],
+      "trace_span_count": 12,
+      "trace_services": [
+        "p19-api",
+        "p19-dispatcher",
+        "p19-worker"
+      ]
+    }
+  ],
+  "failure_observation": {
+    "case_id": "export_1",
+    "type": "semantic_reference_mismatch",
+    "model_cited_missing_identity_fields": [
+      "export_id",
+      "sale_id"
+    ],
+    "lookup_matches_both_identities": true,
+    "identities_present_in_model_evidence_records": false,
+    "context_enrichment_effect": "untested; no replacement or third inference executed"
+  },
+  "images": [
+    {
+      "service": "api",
+      "image_id": "sha256:a9f72ecf901f317c368963ab9adb772785b77fd176b23ef26742ab2e3a86da89",
+      "source_digest": "b6f775dd720b2e2e861717b76ee97cb5cc6511d621f76d8cebde926fc1fe55ac",
+      "provider_secret_in_image": false,
+      "provider_secret_env_present": false
+    },
+    {
+      "service": "dispatcher",
+      "image_id": "sha256:9e0884f34777f674ebd66565235df4f8d3f61f0e43b914877547b0864b453e27",
+      "source_digest": "b6f775dd720b2e2e861717b76ee97cb5cc6511d621f76d8cebde926fc1fe55ac",
+      "provider_secret_in_image": false,
+      "provider_secret_env_present": false
+    },
+    {
+      "service": "worker",
+      "image_id": "sha256:c5a36bc74b14c0ff7b6519bc9b2e3c45bbdcac49635d6e0e7b192c394363816b",
+      "source_digest": "b6f775dd720b2e2e861717b76ee97cb5cc6511d621f76d8cebde926fc1fe55ac",
+      "provider_secret_in_image": false,
+      "provider_secret_env_present": false
+    },
+    {
+      "service": "live-admin",
+      "image_id": "sha256:34bcfa58a88c0220296b204016c6e8523619a224941d03b36e327a4d99c44ac1",
+      "source_digest": "b6f775dd720b2e2e861717b76ee97cb5cc6511d621f76d8cebde926fc1fe55ac",
+      "provider_secret_in_image": false,
+      "provider_secret_env_present": false
+    }
+  ],
+  "limits": [
+    "Stopped sample is not three-case success or general model-quality evidence.",
+    "Assessment is assistant-authored, not human validation.",
+    "Known API usage estimate excludes tax/FX, settled billing and unrelated account activity.",
+    "Unspent allowance is not authorization to resume a stopped study.",
+    "Original load was not repeated; historical fingerprints remain unchanged.",
+    "No public push, hosted CI or cloud deployment."
+  ]
+}
