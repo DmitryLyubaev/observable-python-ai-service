@@ -1,6 +1,7 @@
 import math
 import os
 import time
+from pathlib import Path
 
 from sqlalchemy import text
 
@@ -13,16 +14,51 @@ from p19.provider import InvalidProviderOutput, ProviderFailure, validate_reply
 from p19.telemetry import safe_span
 
 
-def run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=None, fault=None):
+def run_job(
+    job_id,
+    worker_instance_id,
+    *,
+    store=None,
+    profile="success",
+    hook=None,
+    fault=None,
+    live_study_id=None,
+):
     store = store or JobStore()
     job = store.get(job_id)
     with safe_span("worker.execute", job_id, job["trace_context"]):
-        return _run_job(
-            job_id, worker_instance_id, store=store, profile=profile, hook=hook, fault=fault
-        )
+        try:
+            return _run_job(
+                job_id,
+                worker_instance_id,
+                store=store,
+                profile=profile,
+                hook=hook,
+                fault=fault,
+                live_study_id=live_study_id,
+            )
+        finally:
+            if live_study_id is not None:
+                from p19.live import LiveStudy
+
+                try:
+                    state = store.get(job_id)["state"]
+                    if state in {"failed", "cancelled", "interrupted", "outcome_unknown"}:
+                        LiveStudy(store).stop("job_" + state)
+                except Exception:
+                    pass  # An unsatisfied slot/assessment still blocks any later dispatch.
 
 
-def _run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=None, fault=None):
+def _run_job(
+    job_id,
+    worker_instance_id,
+    *,
+    store=None,
+    profile="success",
+    hook=None,
+    fault=None,
+    live_study_id=None,
+):
     store = store or JobStore()
     job = store.claim(job_id, worker_instance_id)
     if job is None:
@@ -46,14 +82,22 @@ def _run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=
                 ),
                 {"id": job_id, "evidence": json_value(evidence)},
             )
-        for _ in range(2):
+        live_call = None
+        if live_study_id is not None:
+            from p19.live import STUDY, LiveGuard, LiveStudy
+
+            if live_study_id != STUDY:
+                raise LiveGuard("live_study_identity_invalid")
+            live_call = LiveStudy(store).prepare(job["failure"], evidence)
+        for _ in range(1 if live_call else 2):
             hook("before_dispatch")
             if time.monotonic() >= deadline:
                 store.finish(job_id, worker_instance_id, "failed", "execution_deadline")
                 return
-            intent = attempts.begin(
-                job_id, worker_instance_id, fault=fault == "dispatch", deadline=deadline
-            )
+            options = {"fault": fault == "dispatch", "deadline": deadline}
+            if live_call is not None:
+                options["live_call"] = live_call
+            intent = attempts.begin(job_id, worker_instance_id, **options)
             if intent is None:
                 return
             attempt_id, number = intent
@@ -64,22 +108,45 @@ def _run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=
                     job_id, worker_instance_id, "outcome_unknown", "execution_deadline_after_intent"
                 )
                 return
-            store.observe(job_id, "provider_start", {"attempt_id": attempt_id, "profile": profile})
+            store.observe(
+                job_id,
+                "provider_start",
+                {"attempt_id": attempt_id, "profile": "live" if live_call else profile},
+            )
             try:
                 with safe_span("provider.attempt", job_id) as span:
                     span.set_attribute("attempt.id", attempt_id)
-                    span.set_attribute("provider.mode", "controlled")
+                    span.set_attribute("provider.mode", "live" if live_call else "controlled")
                     remaining = min(10, deadline - time.monotonic())
                     if remaining <= 0:
                         raise ExecutionDeadline("execution_deadline_after_intent")
-                    reply = ControlledProvider(profile).invoke(
-                        job["failure"], evidence, number, remaining
-                    )
+                    if live_call is not None:
+                        from p19.claude import ClaudeProvider
+
+                        span.set_attribute("provider.model", "claude-haiku-5-5")
+                        provider = ClaudeProvider(
+                            live_call.payload,
+                            Path(
+                                os.environ.get("P19_CLAUDE_KEY_FILE", "/run/secrets/claude_api_key")
+                            ),
+                            receipt_path=Path(
+                                os.environ.get(
+                                    "P19_LIVE_RECEIPTS", ".local/live/p19-real-20261030/provider"
+                                )
+                            )
+                            / f"{attempt_id}.json",
+                        )
+                    else:
+                        provider = ControlledProvider(profile)
+                    reply = provider.invoke(job["failure"], evidence, number, remaining)
                 store.observe(job_id, "provider_end", {"attempt_id": attempt_id})
                 hook("after_reply_before_commit")
                 if fault == "result":
                     raise RuntimeError("result_commit_fault")
                 attempts.finish(attempt_id, "responded", reply["usage"], time.monotonic() - started)
+                if reply.get("error"):
+                    store.finish(job_id, worker_instance_id, "failed", reply["error"])
+                    return
                 if time.monotonic() >= deadline:
                     store.finish(job_id, worker_instance_id, "failed", "reply_after_deadline")
                     return
@@ -95,7 +162,8 @@ def _run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=
                 )
                 delay = exc.retry_after_seconds
                 retry = (
-                    exc.kind == "rate_limit"
+                    live_call is None
+                    and exc.kind == "rate_limit"
                     and exc.definitely_not_processed
                     and number == 1
                     and isinstance(delay, (int, float))

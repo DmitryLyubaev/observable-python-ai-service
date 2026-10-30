@@ -28,3 +28,18 @@ CREATE TABLE IF NOT EXISTS observations(
  id bigserial PRIMARY KEY, job_id text NOT NULL, kind text NOT NULL,
  at timestamptz NOT NULL DEFAULT clock_timestamp(), data jsonb NOT NULL DEFAULT '{}'
 );
+CREATE TABLE IF NOT EXISTS live_studies(
+ id text PRIMARY KEY CHECK(id='p19-real-20261030'), manifest jsonb NOT NULL,
+ manifest_hash text NOT NULL, state text NOT NULL CHECK(state IN ('active','stopped','completed')),
+ reason text, created_at timestamptz NOT NULL DEFAULT clock_timestamp()
+);
+CREATE TABLE IF NOT EXISTS live_calls(
+ case_id text PRIMARY KEY CHECK(case_id IN ('export_0','export_1','export_2')),
+ ordinal integer UNIQUE NOT NULL CHECK(ordinal BETWEEN 0 AND 2),
+ study_id text NOT NULL REFERENCES live_studies(id), job_id text UNIQUE NOT NULL,
+ attempt_id text UNIQUE NOT NULL, reservation_usd numeric NOT NULL CHECK(reservation_usd=0.50256),
+ cost_usd numeric CHECK(cost_usd BETWEEN 0 AND 0.50256), usage jsonb,
+ state text NOT NULL CHECK(state IN ('reserved','settled','rejected')),
+ assessment text CHECK(assessment IN ('pass','fail')), assessment_notes text,
+ created_at timestamptz NOT NULL DEFAULT clock_timestamp()
+);

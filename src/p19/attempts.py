@@ -11,7 +11,7 @@ class AttemptStore:
     def __init__(self, jobs):
         self.jobs = jobs
 
-    def begin(self, job_id, owner, fault=False, deadline=None):
+    def begin(self, job_id, owner, fault=False, deadline=None, live_call=None):
         with self.jobs.db.write(deadline=deadline) as conn:
             row = (
                 conn.execute(
@@ -38,6 +38,10 @@ class AttemptStore:
                 {"id": attempt_id, "job": job_id, "number": number},
             )
             conn.execute(text("UPDATE jobs SET state='calling' WHERE id=:id"), {"id": job_id})
+            if live_call is not None:
+                from p19.live import reserve
+
+                reserve(conn, job_id, attempt_id, live_call)
             event(conn, job_id, "dispatch_intent", {"attempt_id": attempt_id, "number": number})
             if fault:
                 raise RuntimeError("dispatch_commit_fault")
@@ -45,6 +49,9 @@ class AttemptStore:
 
     def finish(self, attempt_id, state, usage=None, duration=None):
         with self.jobs.db.write() as conn:
+            from p19.live import settle
+
+            settle(conn, attempt_id, usage, definitely_not_processed=state == "rejected")
             conn.execute(
                 text(
                     "UPDATE attempts SET state=:state,usage=CAST(:usage AS jsonb),finished_at=clock_timestamp(),duration_seconds=:duration WHERE id=:id"

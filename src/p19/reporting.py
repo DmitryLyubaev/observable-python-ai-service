@@ -1,6 +1,9 @@
 import argparse
 import json
 import statistics
+from decimal import Decimal
+
+from sqlalchemy import text
 
 from p19.jobs import JobStore
 
@@ -18,6 +21,21 @@ def distribution(values):
 def build_summary(run_ids, store):
     jobs = [store.get(job_id) for job_id in run_ids]
     attempts = [attempt for job in jobs for attempt in job["attempts"]]
+    with store.db.engine.connect() as conn:
+        live_attempts = set(conn.execute(text("SELECT attempt_id FROM live_calls")).scalars())
+    modes = set()
+    costs = []
+    for attempt in attempts:
+        usage = attempt["usage"]
+        real = attempt["id"] in live_attempts or (usage and usage.get("provenance") == "provider")
+        modes.add("live" if real else "controlled")
+        if (
+            real
+            and usage
+            and usage.get("provenance") == "provider"
+            and usage.get("cost_usd") is not None
+        ):
+            costs.append(Decimal(usage["cost_usd"]))
     terminal = {}
     for job in jobs:
         terminal[job["state"]] = terminal.get(job["state"], 0) + 1
@@ -30,8 +48,12 @@ def build_summary(run_ids, store):
             bool(attempt["usage"] and attempt["usage"].get("provenance") == "simulated")
             for attempt in attempts
         ),
-        "provider_provenance": "controlled",
-        "known_real_cost_usd": None,
+        "provider_provenance": next(iter(modes))
+        if len(modes) == 1
+        else "mixed"
+        if modes
+        else "none",
+        "known_real_cost_usd": str(sum(costs, Decimal(0))) if costs else None,
         "queue_seconds": distribution(
             [
                 (job["claimed_at"] - job["created_at"]).total_seconds()
@@ -50,7 +72,7 @@ def build_summary(run_ids, store):
             ]
         ),
         "clock_limits": "Within-process monotonic durations; cross-stage timestamps use local PostgreSQL UTC clock.",
-        "limits": "Synthetic controlled-provider local observations; no real-provider cost, quality or capacity claim.",
+        "limits": "Synthetic local observations; known usage estimates exclude unresolved usage and settled billing. No general quality or production-capacity claim.",
     }
 
 

@@ -23,5 +23,13 @@ def recover_worker(store, stopped_instance_id):
                 {"id": row["id"], "state": state},
             )
             event(conn, row["id"], state, {"reason": "verified_worker_stopped"})
+            conn.execute(
+                text(
+                    "UPDATE live_studies SET state='stopped',reason='worker_stopped' "
+                    "WHERE state='active' AND id IN "
+                    "(SELECT study_id FROM live_calls WHERE job_id=:job)"
+                ),
+                {"job": row["id"]},
+            )
             changed.append(row["id"])
     return changed

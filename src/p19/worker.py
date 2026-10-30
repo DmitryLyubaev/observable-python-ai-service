@@ -21,6 +21,11 @@ def init_worker(**kwargs):
 @app.task(name="p19.investigate", ignore_result=True)
 def investigate(job_id):
     try:
+        mode = os.environ.get("P19_PROVIDER", "controlled")
+        study = os.environ.get("P19_LIVE_STUDY") if mode == "live" else None
+        if mode not in {"controlled", "live"} or (mode == "live" and study != "p19-real-20261030"):
+            print("worker_provider_configuration_invalid", flush=True)
+            return
         store = JobStore()
         run_job(
             job_id,
@@ -28,6 +33,7 @@ def investigate(job_id):
             store=store,
             profile=os.environ.get("P19_PROFILE", "success"),
             hook=lambda stage: process_barrier(store, job_id, stage),
+            live_study_id=study,
         )
     except Exception:
         print("worker_execution_failed", flush=True)
