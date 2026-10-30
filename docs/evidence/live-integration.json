@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-30",
+  "scope": "bounded synthetic CV/portfolio demonstration",
+  "integration": "existing authorized option 1, local main",
+  "base": "e3e0bed",
+  "merged_candidate": "b545051",
+  "code_correction": "ce64c13",
+  "post_merge_canonical": {
+    "pytest_seconds": 93.75,
+    "tests": 109,
+    "receipt": {
+      "success": true,
+      "commands": [
+        {
+          "command": [
+            "uv",
+            "lock",
+            "--check"
+          ],
+          "exit": 0
+        },
+        {
+          "command": [
+            "ruff",
+            "check",
+            "src",
+            "tests",
+            "scripts"
+          ],
+          "exit": 0
+        },
+        {
+          "command": [
+            "ruff",
+            "format",
+            "--check",
+            "src",
+            "tests",
+            "scripts"
+          ],
+          "exit": 0
+        },
+        {
+          "command": [
+            "pytest",
+            "-q",
+            "--junitxml=.local/runs/verify-57f3042ae6eb4373af8e4120a77eb527/junit.xml"
+          ],
+          "exit": 0
+        }
+      ],
+      "source": "b6f775dd720b2e2e861717b76ee97cb5cc6511d621f76d8cebde926fc1fe55ac"
+    }
+  },
+  "private_archive": {
+    "name": "pre-integration-live-2026-10-30-4b631438",
+    "active_evidence_copies": 600,
+    "provider_key_in_shared_archive": false,
+    "hash_mismatches": 0,
+    "files": 614,
+    "collision_paths": [
+      ".local\\traces\\collected-success.json"
+    ]
+  },
+  "configuration": {
+    "environment_matches": true,
+    "provider_key_separately_protected_and_hash_matched": true
+  },
+  "sample": {
+    "inference_calls": 2,
+    "approved_allowance_usd": "2",
+    "paid_retries": 0,
+    "unrun": 1,
+    "failed": 1,
+    "passed": 1,
+    "unspent_allowance_usd": "1.9996098",
+    "known_api_usage_usd": "0.0003902",
+    "outcome": "failed_stopped_after_second_case",
+    "new_paid_calls_during_integration": 0,
+    "unresolved_reservations_usd": "0"
+  },
+  "cleanup": {
+    "retained_volumes": [
+      "p19-demo_database",
+      "p19-check_database"
+    ],
+    "owned_running_containers": 0,
+    "old_local_worktree_retained": true,
+    "old_rejected_cleanup_retried": false,
+    "new_live_worktree_removed": true,
+    "owned_listeners": 0,
+    "foreground_shell_closed": true,
+    "new_live_branch_deleted": true
+  },
+  "public_push": false,
+  "hosted_ci": false,
+  "cloud_infrastructure_provisioned": false
+}

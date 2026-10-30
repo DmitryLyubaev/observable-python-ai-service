@@ -123,3 +123,5 @@ Application containers are stopped after trace export, with both database volume
 private evidence retained. The existing local-integration preference applies to this
 implementation and its failed-sample report. Public push, hosted CI, infrastructure
 provisioning and another paid study remain separate decisions.
+[Integration closeout](live-integration-record.md) records primary-checkout verification,
+archive preservation and worktree cleanup.
