@@ -55,6 +55,10 @@ services:
   dispatcher:
     <<: *app
     command: [python, -m, p19.dispatcher]
+  api:
+    <<: *app
+    command: [python, -m, p19.api]
+    ports: ['127.0.0.1:8199:8000']
   worker:
     <<: *app
     command: [celery, -A, p19.worker:app, worker, --pool=prefork, --concurrency=1, --prefetch-multiplier=1, --loglevel=WARNING, --without-gossip, --without-mingle, --without-heartbeat]
