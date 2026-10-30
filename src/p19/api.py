@@ -36,7 +36,17 @@ def create_app(store=None):
             provided = request.headers.get("Authorization", "")
             if not hmac.compare_digest(provided.encode(), f"Bearer {token()}".encode()):
                 return JSONResponse({"error": "unauthorized"}, status_code=401)
-        return await call_next(request)
+        try:
+            return await call_next(request)
+        except Exception as exc:
+            # Contain the original exception inside user middleware, before framework
+            # instrumentation can record its message, traceback or chained causes.
+            from opentelemetry import trace
+
+            span = trace.get_current_span()
+            span.set_attribute("error.type", type(exc).__name__)
+            span.set_status(trace.Status(trace.StatusCode.ERROR))
+            return JSONResponse({"error": "internal_error"}, status_code=500)
 
     @app.exception_handler(SQLAlchemyError)
     async def database_error(request, exc):

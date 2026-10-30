@@ -1,7 +1,9 @@
+import time
 from uuid import uuid4
 
 from sqlalchemy import text
 
+from p19.db import ExecutionDeadline
 from p19.jobs import event, json_value
 
 
@@ -9,8 +11,8 @@ class AttemptStore:
     def __init__(self, jobs):
         self.jobs = jobs
 
-    def begin(self, job_id, owner, fault=False):
-        with self.jobs.db.write() as conn:
+    def begin(self, job_id, owner, fault=False, deadline=None):
+        with self.jobs.db.write(deadline=deadline) as conn:
             row = (
                 conn.execute(
                     text("SELECT * FROM jobs WHERE id=:id AND worker_instance_id=:owner"),
@@ -26,6 +28,8 @@ class AttemptStore:
             ).scalar_one()
             if number > 2:
                 return None
+            if deadline is not None and time.monotonic() >= deadline:
+                raise ExecutionDeadline("execution_deadline")
             attempt_id = str(uuid4())
             conn.execute(
                 text(

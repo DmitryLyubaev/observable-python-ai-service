@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 from p19.attempts import AttemptStore
 from p19.controlled import ControlledProvider
+from p19.db import ExecutionDeadline
 from p19.evidence import lookup, seed
 from p19.jobs import JobStore, json_value
 from p19.provider import InvalidProviderOutput, ProviderFailure, validate_reply
@@ -50,25 +51,38 @@ def _run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=
             if time.monotonic() >= deadline:
                 store.finish(job_id, worker_instance_id, "failed", "execution_deadline")
                 return
-            intent = attempts.begin(job_id, worker_instance_id, fault=fault == "dispatch")
+            intent = attempts.begin(
+                job_id, worker_instance_id, fault=fault == "dispatch", deadline=deadline
+            )
             if intent is None:
                 return
             attempt_id, number = intent
             started = time.monotonic()
             hook("after_dispatch")
+            if time.monotonic() >= deadline:
+                store.finish(
+                    job_id, worker_instance_id, "outcome_unknown", "execution_deadline_after_intent"
+                )
+                return
             store.observe(job_id, "provider_start", {"attempt_id": attempt_id, "profile": profile})
             try:
                 with safe_span("provider.attempt", job_id) as span:
                     span.set_attribute("attempt.id", attempt_id)
                     span.set_attribute("provider.mode", "controlled")
+                    remaining = min(10, deadline - time.monotonic())
+                    if remaining <= 0:
+                        raise ExecutionDeadline("execution_deadline_after_intent")
                     reply = ControlledProvider(profile).invoke(
-                        job["failure"], evidence, number, min(10, deadline - time.monotonic())
+                        job["failure"], evidence, number, remaining
                     )
                 store.observe(job_id, "provider_end", {"attempt_id": attempt_id})
                 hook("after_reply_before_commit")
                 if fault == "result":
                     raise RuntimeError("result_commit_fault")
                 attempts.finish(attempt_id, "responded", reply["usage"], time.monotonic() - started)
+                if time.monotonic() >= deadline:
+                    store.finish(job_id, worker_instance_id, "failed", "reply_after_deadline")
+                    return
                 result = validate_reply(reply, evidence)
                 store.finish(job_id, worker_instance_id, "succeeded", result=result)
                 return
@@ -103,6 +117,14 @@ def _run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=
             except InvalidProviderOutput:
                 store.finish(job_id, worker_instance_id, "failed", "invalid_provider_output")
                 return
+    except ExecutionDeadline:
+        current = store.get(job_id)
+        store.finish(
+            job_id,
+            worker_instance_id,
+            "outcome_unknown" if current["state"] == "calling" else "failed",
+            "execution_deadline",
+        )
     except Exception:
         # The raw exception can contain request/connection secrets. Persist only safe classes.
         try:
