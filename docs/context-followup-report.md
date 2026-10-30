@@ -135,5 +135,34 @@ would stop the sample. Existing diagnostic limits stay deferred. Production hard
 and malicious privileged proof/database forgery remain outside this trusted-operator
 CV demonstration; no adversarial or production reliability claim follows.
 
-Local integration, primary verification and final evidence preservation are recorded
-below after completion. No public push, hosted CI or cloud resources were involved.
+## Local integration and preservation
+
+Primary `main` fast-forwarded from `eafff72` to `2806b63`. Fresh primary canonical
+verification passed **134 tests in 207.80 seconds**, plus lock/lint/format, receipt
+`verify-6eaba086f1e24a9c879735e18f0a17a1`, with the same source fingerprint as the
+candidate and actual live runtime. No executable source changed after the fresh review.
+Post-merge checks used controlled transports in `p19-check`, with no extra paid call.
+
+All **673 private execution/configuration files** were copied and SHA-256 verified
+under primary ignored `.local/pre-integration-context-followup-2026-10-30-1b1d52de`.
+A full archive recheck found zero mismatches. Of the active `.local` paths, 661 files
+were copied and one generic diagnostic trace conflicted: the worktree's
+`traces/collected-success.json` is preserved in the archive without overwriting the
+primary diagnostic. Original immutable study receipts and original reports were not
+replaced. The new run, original input proof files and raw evidence are also retained
+at their original relative paths in primary `.local`.
+
+Primary `.env` and the separately protected primary provider key matched the execution
+copies. No key value/digest was printed, committed, included in Docker context or
+placed in the shared archive. The key remains in owner-restricted primary `.secrets`.
+
+After successful primary checks and preservation, unforced `git worktree remove`
+removed `.worktrees/context-followup`; the fully merged branch was deleted normally.
+The old `.worktrees/local` checkout/branch/scratch and the earlier empty receipt-context
+directory/merged branch remain untouched. No prior rejected cleanup was retried.
+
+Final readback showed zero running `p19-demo`/`p19-check` containers and no 8199/16699
+listeners. Both database volumes remain, preserving both stopped studies and their
+shared allowance/history. The owned temporary WSL shell was closed normally. No public
+push, hosted CI or cloud resources were involved. The remaining decision is how to
+present/publish the honest bounded evidence, not automatic continuation of either study.
