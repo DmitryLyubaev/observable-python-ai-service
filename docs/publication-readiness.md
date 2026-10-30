@@ -56,7 +56,26 @@ passed again. This reporting-only change leaves the tested verifier/application 
 unchanged. Local verification is separate from hosted Actions checkout/run-summary
 delivery, which must be observed after actual publication.
 
-Independent review and final payload/preservation identity are recorded after completion.
+## Independent review
+
+One fresh read-only review of `5024174..a62e762` found zero Critical, zero Important and
+one presentation Minor. The reviewer independently checked the source/history identities,
+cold Linux evidence, workflow and claims. No fix pass or second review occurred.
+
+Deferred presentation Minor: the README load table's maximum of one provider call means
+one **concurrent active** provider call, with eight attempts total in that historical
+sample. The underlying measured report is explicit. Four previously deferred runtime/
+test Minors stay unchanged. No new provider quality or production claim follows.
+
+Execution decisions: existing proceed/Native/local-main authorization covers this local
+package, with public action reserved for the final named-ref approval. Git fallback
+changes only isolation metadata. Documentation/configuration checks use direct tooling
+and existing tests rather than mirror unit tests. Job logs/summaries replace uploaded
+artifacts, so there is no downloadable hosted artifact. Hosted checkout/delivery still
+requires the actual run; current target/account facts are not future account-wide
+guarantees. Model quality/settlement/improvement, general production/adversarial capacity
+and prior diagnostic limits remain outside this preparation. Closeout must verify the
+resulting ref/archive identities before outward approval.
 
 ## Approval boundary
 
