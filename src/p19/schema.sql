@@ -43,3 +43,19 @@ CREATE TABLE IF NOT EXISTS live_calls(
  assessment text CHECK(assessment IN ('pass','fail')), assessment_notes text,
  created_at timestamptz NOT NULL DEFAULT clock_timestamp()
 );
+CREATE TABLE IF NOT EXISTS live_allowance(
+ id text PRIMARY KEY CHECK(id='project19'), cap_usd numeric NOT NULL CHECK(cap_usd=2)
+);
+INSERT INTO live_allowance VALUES('project19',2) ON CONFLICT DO NOTHING;
+DO $$ BEGIN
+ IF NOT EXISTS(SELECT 1 FROM schema_version WHERE version=2) THEN
+  ALTER TABLE live_studies DROP CONSTRAINT live_studies_id_check;
+  ALTER TABLE live_studies ADD CONSTRAINT live_studies_id_check
+   CHECK(id IN ('p19-real-20261030','p19-real-20261030-context-1'));
+  ALTER TABLE live_calls DROP CONSTRAINT live_calls_pkey;
+  ALTER TABLE live_calls DROP CONSTRAINT live_calls_ordinal_key;
+  ALTER TABLE live_calls ADD PRIMARY KEY(study_id,case_id);
+  ALTER TABLE live_calls ADD UNIQUE(study_id,ordinal);
+  INSERT INTO schema_version VALUES(2);
+ END IF;
+END $$;

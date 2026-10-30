@@ -11,6 +11,7 @@ from sqlalchemy import text
 
 from p19.attempts import AttemptStore
 from p19.evidence import lookup, seed
+from p19.live import STUDY
 
 
 @pytest.fixture
@@ -22,8 +23,10 @@ def study(store):
         conn.execute(text("DELETE FROM live_calls"))
         conn.execute(text("DELETE FROM live_studies"))
     seed(store)
-    manifest = make_manifest(store, approval={"owner_confirmed": True}, counts=[1000] * 3)
-    value = LiveStudy(store)
+    manifest = make_manifest(
+        store, approval={"owner_confirmed": True}, counts=[1000] * 3, study_id=STUDY
+    )
+    value = LiveStudy(store, STUDY)
     value.initialize(manifest)
     yield value, store, manifest
     with store.db.write() as conn:
@@ -119,7 +122,7 @@ def test_unknown_and_rejected_slots_survive_reset_and_restart(study):
     AttemptStore(store).finish(attempt, "unknown")
     assert Decimal(value.status()["reserved_usd"]) == Decimal("0.50256")
     store.reset()
-    restarted = LiveStudy(store)
+    restarted = LiveStudy(store, STUDY)
     assert restarted.status()["consumed_slots"] == 1
     with pytest.raises(LiveGuard):
         reserve_job(restarted, store, key="new-name")

@@ -23,7 +23,7 @@ def test_exact_export_identity_controls_receiver_outcome(store):
 def test_lookup_bindings_reach_frozen_request(store):
     from p19.claude import build_request
     from p19.evidence import lookup, seed
-    from p19.live import fixture_cases, make_manifest
+    from p19.live import STUDY, fixture_cases, make_manifest
 
     seed(store)
     failure = fixture_cases()[1]
@@ -53,7 +53,7 @@ def test_lookup_bindings_reach_frozen_request(store):
         assert evidence["records"] == expected
         evidence["receiver_outcome"] = "REFERENCE_CANARY"
         payload = build_request(failure, evidence)
-        manifest = make_manifest(store, {"owner_confirmed": True}, [1000] * 3)
+        manifest = make_manifest(store, {"owner_confirmed": True}, [1000] * 3, study_id=STUDY)
         assert manifest["cases"][1]["payload"] == payload.decode()
         supplied = json.loads(json.loads(payload)["messages"][0]["content"])
         assert supplied == {"failure": failure, "records": expected}

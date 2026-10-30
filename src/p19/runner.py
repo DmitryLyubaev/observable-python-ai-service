@@ -44,7 +44,7 @@ def run_job(
                 try:
                     state = store.get(job_id)["state"]
                     if state in {"failed", "cancelled", "interrupted", "outcome_unknown"}:
-                        LiveStudy(store).stop("job_" + state)
+                        LiveStudy(store, live_study_id).stop("job_" + state)
                 except Exception:
                     pass  # An unsatisfied slot/assessment still blocks any later dispatch.
 
@@ -84,11 +84,9 @@ def _run_job(
             )
         live_call = None
         if live_study_id is not None:
-            from p19.live import STUDY, LiveGuard, LiveStudy
+            from p19.live import LiveStudy
 
-            if live_study_id != STUDY:
-                raise LiveGuard("live_study_identity_invalid")
-            live_call = LiveStudy(store).prepare(job["failure"], evidence)
+            live_call = LiveStudy(store, live_study_id).prepare(job["failure"], evidence)
         for _ in range(1 if live_call else 2):
             hook("before_dispatch")
             if time.monotonic() >= deadline:

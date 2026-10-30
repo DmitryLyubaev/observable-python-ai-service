@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
@@ -15,6 +16,8 @@ from p19.evidence import lookup
 from p19.jobs import json_value
 
 STUDY = "p19-real-20261030"
+FOLLOWUP = "p19-real-20261030-context-1"
+FOLLOWUP_SHA = "65480db71891ff5b3dcc449636cc04ca7abef68b66c466c27deb0991b1900f16"
 RESERVATION = Decimal("0.50256")
 PROPOSAL_SHA = "e65ebcd6cf3ed79f3b85a815c0846ba3ed6e1d22ea5929fd18ecde7c223395a6"
 FIXTURE_HASHES = {
@@ -63,13 +66,35 @@ def fixture_cases():
     ]
 
 
-def make_manifest(store, approval, counts):
+def checked_study(study_id):
+    if study_id not in {STUDY, FOLLOWUP}:
+        raise LiveGuard("live_study_identity_invalid")
+    return study_id
+
+
+def original_test_only(study_id):
+    if study_id == STUDY and os.environ.get("P19_PROJECT") != "p19-check":
+        raise LiveGuard("live_original_study_closed")
+
+
+def make_manifest(store, approval, counts, *, study_id):
+    checked_study(study_id)
     if (
         approval.get("owner_confirmed") is not True
         or len(counts) != 3
         or any(type(n) is not int or not 0 <= n <= 4096 for n in counts)
     ):
         raise LiveGuard("live_preflight_invalid")
+    history_hash = None
+    if study_id == FOLLOWUP:
+        from p19.live_history import verify_history
+
+        if (
+            approval.get("approved_proposal_sha256") != PROPOSAL_SHA
+            or approval.get("additional_call_proposal_sha256") != FOLLOWUP_SHA
+        ):
+            raise LiveGuard("live_followup_approval_missing")
+        history_hash = verify_history(store.db.engine, approval)
     fixture_evidence = json.loads(Path("fixtures/evidence.json").read_text())
     cases = []
     for record, count in zip(fixture_cases(), counts, strict=True):
@@ -97,7 +122,8 @@ def make_manifest(store, approval, counts):
             }
         )
     return {
-        "study_id": STUDY,
+        "study_id": study_id,
+        "original_history_sha256": history_hash,
         "configuration": CONFIG.copy(),
         "source_digest": source_digest(),
         "overlay_sha256": overlay_digest(),
@@ -119,25 +145,34 @@ class PreparedLiveCall:
 
 
 class LiveStudy:
-    def __init__(self, store):
+    def __init__(self, store, study_id):
         self.store = store
+        self.study_id = checked_study(study_id)
 
     def initialize(self, manifest):
+        original_test_only(self.study_id)
         if (
-            manifest.get("study_id") != STUDY
+            manifest.get("study_id") != self.study_id
             or manifest.get("configuration") != CONFIG
             or manifest.get("approval", {}).get("approved_proposal_sha256") != PROPOSAL_SHA
         ):
             raise LiveGuard("live_manifest_invalid")
         expected = make_manifest(
-            self.store, manifest["approval"], [row["input_estimate"] for row in manifest["cases"]]
+            self.store,
+            manifest["approval"],
+            [row["input_estimate"] for row in manifest["cases"]],
+            study_id=self.study_id,
         )
         if manifest != expected:
             raise LiveGuard("live_manifest_changed")
         identity = digest(canonical(manifest))
         with self.store.db.write() as conn:
+            if self.study_id == FOLLOWUP:
+                from p19.live_history import check_snapshot
+
+                check_snapshot(conn, manifest["original_history_sha256"])
             row = (
-                conn.execute(text("SELECT * FROM live_studies WHERE id=:id"), {"id": STUDY})
+                conn.execute(text("SELECT * FROM live_studies WHERE id=:id"), {"id": self.study_id})
                 .mappings()
                 .first()
             )
@@ -149,19 +184,28 @@ class LiveStudy:
                 text(
                     "INSERT INTO live_studies(id,manifest,manifest_hash,state) VALUES(:id,CAST(:manifest AS jsonb),:hash,'active')"
                 ),
-                {"id": STUDY, "manifest": json_value(manifest), "hash": identity},
+                {"id": self.study_id, "manifest": json_value(manifest), "hash": identity},
             )
 
     def prepare(self, record, evidence):
         with self.store.db.engine.connect() as conn:
             row = (
-                conn.execute(text("SELECT * FROM live_studies WHERE id=:id"), {"id": STUDY})
+                conn.execute(text("SELECT * FROM live_studies WHERE id=:id"), {"id": self.study_id})
                 .mappings()
                 .first()
             )
         if not row or row["state"] != "active":
             raise LiveGuard("live_study_inactive")
         manifest = row["manifest"]
+        original_test_only(self.study_id)
+        if self.study_id == FOLLOWUP:
+            from p19.live_history import verify_history
+
+            if (
+                verify_history(self.store.db.engine, manifest["approval"])
+                != manifest["original_history_sha256"]
+            ):
+                raise LiveGuard("live_original_history_changed")
         if (
             source_digest() != manifest["source_digest"]
             or overlay_digest() != manifest["overlay_sha256"]
@@ -174,7 +218,7 @@ class LiveStudy:
         if len(match) != 1 or match[0]["payload_hash"] != digest(payload):
             raise LiveGuard("live_case_not_frozen")
         return PreparedLiveCall(
-            STUDY, match[0]["case_id"], payload, digest(payload), row["manifest_hash"]
+            self.study_id, match[0]["case_id"], payload, digest(payload), row["manifest_hash"]
         )
 
     def stop(self, reason):
@@ -183,7 +227,7 @@ class LiveStudy:
                 text(
                     "UPDATE live_studies SET state='stopped',reason=:reason WHERE id=:id AND state='active'"
                 ),
-                {"id": STUDY, "reason": reason},
+                {"id": self.study_id, "reason": reason},
             )
 
     def require_preflight(self):
@@ -203,6 +247,8 @@ class LiveStudy:
                 or receipt["model"] != MODEL
                 or receipt["source_digest"] != manifest["source_digest"]
                 or receipt["counts"] != [row["input_estimate"] for row in manifest["cases"]]
+                or receipt["study_id"] != self.study_id
+                or receipt["payload_hashes"] != [row["payload_hash"] for row in manifest["cases"]]
             ):
                 raise LiveGuard("live_preflight_changed")
         except (KeyError, OSError, ValueError, TypeError):
@@ -217,10 +263,13 @@ class LiveStudy:
             raise LiveGuard("live_assessment_invalid")
         with self.store.db.write() as conn:
             study = conn.execute(
-                text("SELECT state FROM live_studies WHERE id=:id"), {"id": STUDY}
+                text("SELECT state FROM live_studies WHERE id=:id"), {"id": self.study_id}
             ).scalar_one_or_none()
             row = (
-                conn.execute(text("SELECT * FROM live_calls WHERE case_id=:id"), {"id": case_id})
+                conn.execute(
+                    text("SELECT * FROM live_calls WHERE study_id=:study AND case_id=:id"),
+                    {"id": case_id, "study": self.study_id},
+                )
                 .mappings()
                 .first()
             )
@@ -233,37 +282,49 @@ class LiveStudy:
                 raise LiveGuard("live_case_not_successful")
             conn.execute(
                 text(
-                    "UPDATE live_calls SET assessment=:decision,assessment_notes=:notes WHERE case_id=:id"
+                    "UPDATE live_calls SET assessment=:decision,assessment_notes=:notes WHERE study_id=:study AND case_id=:id"
                 ),
-                {"decision": decision, "notes": notes, "id": case_id},
+                {"decision": decision, "notes": notes, "id": case_id, "study": self.study_id},
             )
             if decision == "fail":
                 conn.execute(
                     text(
                         "UPDATE live_studies SET state='stopped',reason='assistant_assessment_failed' WHERE id=:id"
                     ),
-                    {"id": STUDY},
+                    {"id": self.study_id},
                 )
             elif row["ordinal"] == 2:
                 conn.execute(
-                    text("UPDATE live_studies SET state='completed' WHERE id=:id"), {"id": STUDY}
+                    text("UPDATE live_studies SET state='completed' WHERE id=:id"),
+                    {"id": self.study_id},
                 )
 
     def status(self):
         with self.store.db.engine.connect() as conn:
             study = (
-                conn.execute(text("SELECT * FROM live_studies WHERE id=:id"), {"id": STUDY})
+                conn.execute(text("SELECT * FROM live_studies WHERE id=:id"), {"id": self.study_id})
                 .mappings()
                 .first()
             )
-            calls = [
+            all_calls = [
                 dict(row)
                 for row in conn.execute(
-                    text("SELECT * FROM live_calls ORDER BY ordinal")
+                    text("SELECT * FROM live_calls ORDER BY study_id,ordinal")
                 ).mappings()
             ]
+        calls = [row for row in all_calls if row["study_id"] == self.study_id]
         return {
-            "study_id": STUDY,
+            "study_id": self.study_id,
+            "cumulative_consumed_slots": len(all_calls),
+            "cumulative_known_cost_usd": str(
+                sum((row["cost_usd"] or Decimal(0) for row in all_calls), Decimal(0))
+            ),
+            "cumulative_reserved_usd": str(
+                sum(
+                    (row["reservation_usd"] for row in all_calls if row["cost_usd"] is None),
+                    Decimal(0),
+                )
+            ),
             "state": study["state"] if study else "uninitialized",
             "reason": study["reason"] if study else None,
             "cap_usd": "2",
@@ -282,18 +343,19 @@ class LiveStudy:
 
 
 def reserve(conn, job_id, attempt_id, call):
+    checked_study(call.study_id)
+    original_test_only(call.study_id)
     study = (
-        conn.execute(text("SELECT * FROM live_studies WHERE id=:id"), {"id": STUDY})
+        conn.execute(text("SELECT * FROM live_studies WHERE id=:id"), {"id": call.study_id})
         .mappings()
         .first()
     )
-    if (
-        not study
-        or study["state"] != "active"
-        or call.study_id != STUDY
-        or study["manifest_hash"] != call.configuration_hash
-    ):
+    if not study or study["state"] != "active" or study["manifest_hash"] != call.configuration_hash:
         raise LiveGuard("live_permission_unavailable")
+    if call.study_id == FOLLOWUP:
+        from p19.live_history import check_snapshot
+
+        check_snapshot(conn, study["manifest"]["original_history_sha256"])
     cases = study["manifest"]["cases"]
     indexes = [
         n
@@ -304,7 +366,10 @@ def reserve(conn, job_id, attempt_id, call):
     if len(indexes) != 1:
         raise LiveGuard("live_case_not_frozen")
     ordinal = indexes[0]
-    rows = list(conn.execute(text("SELECT * FROM live_calls ORDER BY ordinal")).mappings())
+    all_rows = list(
+        conn.execute(text("SELECT * FROM live_calls ORDER BY study_id,ordinal")).mappings()
+    )
+    rows = [row for row in all_rows if row["study_id"] == call.study_id]
     if len(rows) != ordinal or any(
         row["state"] != "settled" or row["assessment"] != "pass" for row in rows
     ):
@@ -312,11 +377,14 @@ def reserve(conn, job_id, attempt_id, call):
     used = sum(
         (
             row["cost_usd"] if row["cost_usd"] is not None else row["reservation_usd"]
-            for row in rows
+            for row in all_rows
         ),
         Decimal(0),
     )
-    if used + RESERVATION > Decimal("2"):
+    cap = conn.execute(
+        text("SELECT cap_usd FROM live_allowance WHERE id='project19' FOR UPDATE")
+    ).scalar_one()
+    if used + RESERVATION > cap:
         raise LiveGuard("live_allowance_exhausted")
     conn.execute(
         text(
@@ -325,7 +393,7 @@ def reserve(conn, job_id, attempt_id, call):
         {
             "case": call.case_id,
             "ordinal": ordinal,
-            "study": STUDY,
+            "study": call.study_id,
             "job": job_id,
             "attempt": attempt_id,
             "reserve": RESERVATION,
@@ -377,5 +445,5 @@ def settle(conn, attempt_id, usage, *, definitely_not_processed=False):
             text(
                 "UPDATE live_studies SET state='stopped',reason='unknown_provider_usage' WHERE id=:id AND state='active'"
             ),
-            {"id": STUDY},
+            {"id": row["study_id"]},
         )
