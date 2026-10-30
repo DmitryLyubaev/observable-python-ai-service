@@ -196,11 +196,29 @@ def run_next(store, url, root):
             receipt["state"] = "awaiting_assessment"
         else:
             receipt["error"] = "live_case_automated_check_failed"
-            study.stop(receipt["error"])
     except Exception as exc:
-        receipt["error"] = type(exc).__name__
-        study.stop("live_driver_failure")
-    receipt["budget"] = study.status()
+        receipt.setdefault("error", type(exc).__name__)
+
+    def stop_safely(reason):
+        try:
+            study.stop(reason)
+        except Exception as exc:
+            receipt["stop_error"] = type(exc).__name__
+
+    stop_attempted = receipt["state"] == "failed"
+    if stop_attempted:
+        stop_safely("live_driver_failure")
+    try:
+        receipt["budget"] = study.status()
+        receipt["accounting_state"] = "available"
+    except Exception as exc:
+        receipt["budget"] = None
+        receipt["accounting_state"] = "unavailable"
+        receipt["accounting_error"] = type(exc).__name__
+        receipt["state"] = "failed"
+        receipt.setdefault("error", "live_accounting_unavailable")
+        if not stop_attempted:
+            stop_safely("live_accounting_unavailable")
     write_once(root / f"{case_id}.receipt.json", receipt)
     return receipt
 

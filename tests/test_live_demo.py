@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import subprocess
 import threading
 import uuid
 from copy import deepcopy
@@ -238,3 +239,76 @@ def test_actual_cli_progress_retains_cases_and_stops_without_reposting(
         assert Decimal(status["known_cost_usd"]) == Decimal("0.00015" if fail else "0.00045")
     receipts = list((root / "run").glob("*.receipt.json"))
     assert len(receipts) == (1 if fail else 3)
+
+
+@pytest.mark.parametrize("failure", ["stop_and_status", "status_after_success"])
+def test_driver_receipt_survives_failed_database_finalization(tool, trial, monkeypatch, failure):
+    from p19 import claude
+
+    class StopUnavailable(Exception):
+        pass
+
+    class StatusUnavailable(Exception):
+        pass
+
+    store, root, key = trial
+    responder = transport_responder([])
+    tool.prepare(
+        store,
+        key,
+        root / "manifest.json",
+        {"owner_confirmed": True},
+        transport=httpx.MockTransport(responder),
+    )
+    monkeypatch.setenv("P19_CLAUDE_KEY_FILE", str(key))
+    monkeypatch.setenv("P19_LIVE_RECEIPTS", str(root / "provider"))
+    original_provider = claude.ClaudeProvider
+    monkeypatch.setattr(
+        claude,
+        "ClaudeProvider",
+        lambda *args, **kwargs: original_provider(
+            *args, **kwargs, transport=httpx.MockTransport(responder)
+        ),
+    )
+    unavailable = False
+    original_status, original_stop, original_cli = LiveStudy.status, LiveStudy.stop, tool.cli
+
+    def status(self):
+        if unavailable:
+            raise StatusUnavailable("private database detail")
+        return original_status(self)
+
+    def stop(self, reason):
+        if unavailable and failure == "stop_and_status":
+            raise StopUnavailable("private database detail")
+        return original_stop(self, reason)
+
+    def cli(url, *arguments, **kwargs):
+        nonlocal unavailable
+        if arguments[0] == "follow":
+            if failure == "stop_and_status":
+                unavailable = True
+                raise subprocess.TimeoutExpired(["follow"], 0.1)
+            run_job(arguments[1], "offline-worker", store=store, live_study_id=STUDY)
+        output = original_cli(url, *arguments, **kwargs)
+        if arguments[0] == "get":
+            unavailable = True
+        return output
+
+    monkeypatch.setattr(LiveStudy, "status", status)
+    monkeypatch.setattr(LiveStudy, "stop", stop)
+    monkeypatch.setattr(tool, "cli", cli)
+    with serve(store) as client:
+        receipt = tool.run_next(store, str(client.base_url), root / "run")
+    saved = json.loads((root / "run/export_0.receipt.json").read_text())
+    assert saved == receipt and saved["job_id"] is not None
+    assert saved["state"] == "failed"
+    assert saved["budget"] is None
+    assert saved["accounting_state"] == "unavailable"
+    assert saved["accounting_error"] == "StatusUnavailable"
+    assert "private database detail" not in json.dumps(saved)
+    if failure == "stop_and_status":
+        assert saved["error"] == "TimeoutExpired"
+        assert saved["stop_error"] == "StopUnavailable"
+    else:
+        assert saved["error"] == "live_accounting_unavailable"
