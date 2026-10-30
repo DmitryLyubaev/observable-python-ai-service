@@ -188,6 +188,88 @@ def test_original_cannot_be_activated_outside_checks(store, monkeypatch):
         LiveStudy(store, STUDY).initialize(manifest)
 
 
+def load_tool():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("followup_tool", "scripts/live.py")
+    tool = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(tool)
+    return tool
+
+
+def test_cli_requires_explicit_run_and_worker_targets_followup():
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "scripts/live.py", "status"], capture_output=True, text=True, timeout=10
+    )
+    assert result.returncode != 0 and "--study" in result.stderr
+    config = json.loads(Path("compose.live.yaml").read_text())
+    assert config["services"]["worker"]["environment"]["P19_LIVE_STUDY"] == FOLLOWUP
+
+
+def test_preflight_refuses_bad_history_without_any_request(store):
+    import httpx
+
+    root, approval, _ = prior_history(store)
+    (root / "provider/old-attempt-1.json").write_text("{}")
+    seen = []
+
+    def response(request):
+        seen.append(request)
+        raise AssertionError("transport_must_not_be_used")
+
+    with pytest.raises(LiveGuard):
+        load_tool().prepare(
+            store,
+            root / "unused-key",
+            root / "new-manifest.json",
+            approval,
+            study_id=FOLLOWUP,
+            transport=httpx.MockTransport(response),
+        )
+    assert seen == []
+
+
+def test_cumulative_cap_includes_original_charges(store, monkeypatch):
+    from test_live_budget import create_job
+
+    from p19.attempts import AttemptStore
+    from p19.evidence import lookup
+
+    _, approval, _ = prior_history(store)
+    value, _ = new_study(store, approval)
+    job = create_job(store)
+    call = value.prepare(job["failure"], lookup(job["failure"], store))
+    # This would fit an empty per-run budget but not the shared meter with old charges.
+    monkeypatch.setattr("p19.live.RESERVATION", Decimal("1.9997"))
+    with pytest.raises(LiveGuard, match="live_allowance_exhausted"):
+        AttemptStore(store).begin(job["id"], "owner", live_call=call)
+    assert value.status()["consumed_slots"] == 0
+
+
+def test_history_cli_bypasses_schema_initialization(store, monkeypatch, capsys):
+    import sys
+
+    root, _, proof = prior_history(store)
+    tool = load_tool()
+    monkeypatch.setattr(
+        tool, "JobStore", lambda: pytest.fail("history must not construct JobStore")
+    )
+    monkeypatch.setattr(tool, "study_root", lambda study_id: root / "cli-history")
+    monkeypatch.setenv("P19_PROJECT", "p19-demo")
+    monkeypatch.delenv("P19_TEST", raising=False)
+    monkeypatch.setattr(
+        sys, "argv", ["live.py", "--study", FOLLOWUP, "history", "--source-root", str(root)]
+    )
+    assert tool.main() == 0
+    result = json.loads(capsys.readouterr().out)
+    assert json.loads(Path(result["history"]).read_text()) == proof
+    with store.db.engine.connect() as conn:
+        assert snapshot(conn) == proof["snapshot"]
+
+
 def test_old_schema_migration_is_idempotent_and_keeps_every_row(store):
     from p19.jobs import json_value
 

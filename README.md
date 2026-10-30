@@ -86,69 +86,26 @@ costed acceptance scope.
 
 ## Evidence and cleanup
 
-### Approved small live study
+### Approved context follow-up
 
-The optional live mode is one fixed study, `p19-real-20261030`: Claude Haiku 5.5,
-three ordered synthetic cases, no inference retries and a USD2 cumulative API-usage
-allowance before tax/FX. It is a bounded demonstration, not a general spend platform.
-This study is now stopped. The following commands document its original procedure;
-reinitialization and further paid calls are refused. See the dated report for the
-observed receipt-identity context gap and retained original failure.
-The default setup, checks and examples above remain keyless and controlled.
+The original `p19-real-20261030` sample remains stopped: one pass, one semantic
+failure and one unrun case, with USD0.0003902 known usage. The owner separately
+approved one fresh run, `p19-real-20261030-context-1`, with at most three additional
+Haiku calls under the same cumulative USD2 allowance before tax/FX. Never combine
+the old pass with new cases or reset the old ledger.
 
-The owner supplies a personal API key in ignored `.secrets/claude-api-key`, with local
-file access restricted to the owner. This directory is excluded from Docker builds.
-Only worker and `live-admin` mount that file as a read-only Compose secret; API,
-dispatcher and checks do not receive it. Keep it outside the shared `.local` directory.
-The private `.local/live-approval.json` records the specific approved proposal/allowance
-and owner-confirmed account/alert readiness. Setup does not fabricate that approval.
+The [follow-up runbook](docs/context-followup-runbook.md) covers read-only original
+history capture before migration, exact evidence reconciliation, explicit run IDs,
+secret isolation, one free preflight, per-case assistant assessment and cleanup.
+The CLI requires `--study p19-real-20261030-context-1` before every subcommand.
+Only worker/admin receive the protected key; ordinary checks remain controlled.
 
-After offline verification and review, use a persistent WSL terminal:
-
-```sh
-docker compose -p p19-demo up -d --build postgres redis api dispatcher jaeger
-docker compose -p p19-demo -f compose.yaml -f compose.live.yaml run --rm --build live-admin python scripts/live.py prepare
-docker compose -p p19-demo -f compose.yaml -f compose.live.yaml up -d --build worker
-docker compose -p p19-demo -f compose.yaml -f compose.live.yaml run --rm --no-deps live-admin python scripts/live.py run --next
-```
-
-Preflight performs bounded model metadata and three free token-count requests, never an
-inference probe. It freezes exact source/configuration/request identities before activating
-the allowance. It refuses an existing study or active unrelated jobs. The worker verifies
-the retained preflight receipt. API requests cannot select a provider or model.
-
-Inspect the saved result in `.local/live/p19-real-20261030/run/` and write an actual
-assistant assessment to a private notes file. For a passing first case:
-
-```sh
-docker compose -p p19-demo -f compose.yaml -f compose.live.yaml run --rm --no-deps live-admin python scripts/live.py assess --case export_0 --decision pass --notes-file .local/live/p19-real-20261030/export_0-assessment.txt
-docker compose -p p19-demo -f compose.yaml -f compose.live.yaml run --rm --no-deps live-admin python scripts/live.py run --next
-docker compose -p p19-demo -f compose.yaml -f compose.live.yaml run --rm --no-deps live-admin python scripts/live.py status
-```
-
-Use `fail` when warranted. Assess `export_1` and `export_2` separately after their own
-responses. Only a successful, settled, assessed predecessor enables the next case.
-A failed/unknown call or failed assessment stops the study. Re-entering `run --next`
-at an assessment checkpoint reads the existing job; it does not repost it. Other
-output names, restarts and rejected calls never restore consumed slots.
-
-Each dispatch reserves USD0.50256 using conservative full-context/high-tier rates,
-although the prompts are tiny. Known usage replaces that reservation; unknown usage
-retains it. Cancellation does not prove billing stopped. Output truncation/refusal may
-still have known usage. The 10-second provider/30-second job deadlines stay unchanged;
-cold schema compilation may cause the first call to time out. No warming call or
-silent timeout extension is permitted. Usage estimates remain distinct from an invoice,
-tax/FX and unrelated account activity. Raw responses and failed receipts remain private.
-
-To validate resolved credential configuration without printing it, pipe
-`docker compose -p p19-demo -f compose.yaml -f compose.live.yaml config --format json`
-into `python scripts/live.py check-config` in a keyless checks container. The canonical
-suite also builds a dummy-only Docker context to verify secret exclusion.
-
-Stop owned services after exporting needed traces. Retain database volumes, the allowance,
-private receipts and any unresolved reservation. Public publication and hosted CI are
-separate decisions. No real-provider throughput, general accuracy or human review follows
-from this three-case study.
+Per-study slots share one durable allowance and the transaction lock. Unknown usage
+retains its reservation and stops that run; failure never authorizes a replacement.
+No retries, warming, fallback or paid judge is allowed. Source/request/fixture hashes,
+10/30-second bounds and the original failed evidence are preserved. Actual improvement
+remains untested until the approved follow-up is executed. Public publication/hosted CI
+and any additional study remain separate decisions.
 
 The dated [local report](docs/local-report.md) records actual checks, source/runtime
 digests, sample counts, original failures and limitations. The load script permits one

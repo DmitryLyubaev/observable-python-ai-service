@@ -8,14 +8,28 @@ import sys
 import uuid
 from pathlib import Path
 
+from sqlalchemy import create_engine
+
 from p19.acceptance import RunJournal, write_once
 from p19.claude import MODEL, bounded_request, canonical
+from p19.config import database_url
 from p19.evidence import seed
 from p19.jobs import JobStore
-from p19.live import PROPOSAL_SHA, STUDY, LiveGuard, LiveStudy, digest, fixture_cases, make_manifest
+from p19.live import (
+    FOLLOWUP,
+    FOLLOWUP_SHA,
+    PROPOSAL_SHA,
+    LiveGuard,
+    LiveStudy,
+    checked_study,
+    digest,
+    fixture_cases,
+    make_manifest,
+)
 
 
-def validate_secret_configuration(config):
+def validate_secret_configuration(config, study_id):
+    checked_study(study_id)
     services = config.get("services", {})
     for required in ("worker", "live-admin"):
         if required not in services:
@@ -34,7 +48,11 @@ def validate_secret_configuration(config):
             if ".secrets" in str(mount) or "/run/secrets" in str(mount):
                 raise LiveGuard("provider_secret_in_shared_volume")
     worker_env = services["worker"].get("environment", {})
-    if worker_env.get("P19_PROVIDER") != "live" or worker_env.get("P19_LIVE_STUDY") != STUDY:
+    if (
+        worker_env.get("P19_PROVIDER") != "live"
+        or worker_env.get("P19_LIVE_STUDY") != study_id
+        or services["live-admin"].get("environment", {}).get("P19_LIVE_STUDY") != study_id
+    ):
         raise LiveGuard("live_worker_mode_missing")
     source = Path(config["secrets"]["claude_api_key"]["file"])
     if source.name != "claude-api-key" or source.parent.name != ".secrets":
@@ -61,14 +79,19 @@ def checked_model(body):
         raise LiveGuard("live_model_capabilities_unverified")
 
 
-def prepare(store, key_path, output, approval, *, transport=None):
-    value = LiveStudy(store)
+def prepare(store, key_path, output, approval, *, study_id, transport=None):
+    value = LiveStudy(store, study_id)
+    if (
+        os.environ.get("P19_PROJECT") != "p19-check"
+        and output != study_root(study_id) / "manifest.json"
+    ):
+        raise LiveGuard("live_artifact_root_invalid")
     if value.status()["state"] != "uninitialized":
         raise LiveGuard("live_study_already_initialized")
     if any(job["state"] in {"queued", "preparing", "calling"} for job in store.all()):
         raise LiveGuard("live_requires_idle_job_store")
     seed(store)
-    draft = make_manifest(store, approval, [0, 0, 0])
+    draft = make_manifest(store, approval, [0, 0, 0], study_id=study_id)
     output.parent.mkdir(parents=True, exist_ok=True)
     receipt = output.parent / f"preflight-{uuid.uuid4().hex}.json"
     counts = []
@@ -108,7 +131,15 @@ def prepare(store, key_path, output, approval, *, transport=None):
             if type(count) is not int or not 0 < count <= 4096:
                 raise LiveGuard("live_input_estimate_invalid")
             counts.append(count)
-        journal.succeed({"model": MODEL, "counts": counts, "source_digest": draft["source_digest"]})
+        journal.succeed(
+            {
+                "model": MODEL,
+                "counts": counts,
+                "source_digest": draft["source_digest"],
+                "study_id": study_id,
+                "payload_hashes": [row["payload_hash"] for row in draft["cases"]],
+            }
+        )
     manifest = make_manifest(
         store,
         {
@@ -117,6 +148,7 @@ def prepare(store, key_path, output, approval, *, transport=None):
             "preflight_sha256": digest(receipt.read_bytes()),
         },
         counts,
+        study_id=study_id,
     )
     write_once(output, manifest)
     value.initialize(manifest)
@@ -141,8 +173,14 @@ def cli(url, *arguments, timeout=15):
     return result.stdout
 
 
-def run_next(store, url, root):
-    study = LiveStudy(store)
+def study_root(study_id):
+    return Path(".local/live") / checked_study(study_id)
+
+
+def run_next(store, url, root, *, study_id):
+    study = LiveStudy(store, study_id)
+    if os.environ.get("P19_PROJECT") != "p19-check" and root != study_root(study_id) / "run":
+        raise LiveGuard("live_artifact_root_invalid")
     study.require_preflight()
     status = study.status()
     if status["state"] != "active":
@@ -164,16 +202,17 @@ def run_next(store, url, root):
     if intent.exists():
         raise LiveGuard("live_submission_already_recorded")
     # This global study/case key never changes with output directories or invocations.
-    key = f"live-{STUDY}-{case_id}"
+    key = f"live-{study_id}-{case_id}"
     write_once(
         intent,
         {
+            "study_id": study_id,
             "case_id": case_id,
             "idempotency_key": key,
             "source_digest": status["manifest"]["source_digest"],
         },
     )
-    receipt = {"case_id": case_id, "state": "failed", "job_id": None}
+    receipt = {"study_id": study_id, "case_id": case_id, "state": "failed", "job_id": None}
     try:
         path = root / f"{case_id}.request.json"
         write_once(path, record)
@@ -225,12 +264,12 @@ def run_next(store, url, root):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--study", required=True, choices=[FOLLOWUP])
     commands = parser.add_subparsers(dest="command", required=True)
     preparation = commands.add_parser("prepare")
-    preparation.add_argument(
-        "--output", type=Path, default=Path(f".local/live/{STUDY}/manifest.json")
-    )
-    preparation.add_argument("--approval", type=Path, default=Path(".local/live-approval.json"))
+    preparation.add_argument("--approval", type=Path)
+    history = commands.add_parser("history")
+    history.add_argument("--source-root", type=Path, required=True)
     commands.add_parser("status")
     run = commands.add_parser("run")
     run.add_argument("--next", action="store_true", required=True)
@@ -242,20 +281,45 @@ def main():
     args = parser.parse_args()
     try:
         if args.command == "check-config":
-            validate_secret_configuration(json.load(sys.stdin))
+            validate_secret_configuration(json.load(sys.stdin), args.study)
             print(json.dumps({"provider_secret_isolated": True}))
             return 0
         if os.environ.get("P19_PROJECT") != "p19-demo" or os.environ.get("P19_TEST"):
             raise LiveGuard("live_cli_requires_demo_namespace")
+        root = study_root(args.study)
+        if args.command == "history":
+            from p19.live_history import capture_history
+
+            engine = create_engine(database_url(), connect_args={"connect_timeout": 3})
+            try:
+                proof = capture_history(engine, args.source_root)
+            finally:
+                engine.dispose()
+            path = root / "original-history.json"
+            write_once(path, proof)
+            print(
+                json.dumps(
+                    {
+                        "history": str(path),
+                        "sha256": digest(path.read_bytes()),
+                        "snapshot_sha256": digest(canonical(proof["snapshot"])),
+                    }
+                )
+            )
+            return 0
         store = JobStore()
         if args.command == "prepare":
-            approval = json.loads(args.approval.read_text(encoding="utf-8-sig"))
+            approval = json.loads(
+                (args.approval or root / "approval.json").read_text(encoding="utf-8-sig")
+            )
             if (
                 approval.get("approved_proposal_sha256") != PROPOSAL_SHA
+                or approval.get("additional_call_proposal_sha256") != FOLLOWUP_SHA
                 or approval.get("owner_personal_account_and_alert_confirmed") is not True
-                or approval.get("plan_approved") is not True
+                or approval.get("implementation_approved") is not True
                 or approval.get("allowance_usd") != "2"
                 or approval.get("max_inference_calls") != 3
+                or approval.get("max_total_inference_calls") != 5
                 or approval.get("automatic_retries") != 0
                 or approval.get("model") != MODEL
             ):
@@ -263,20 +327,24 @@ def main():
             output = prepare(
                 store,
                 Path(os.environ.get("P19_CLAUDE_KEY_FILE", "/run/secrets/claude_api_key")),
-                args.output,
+                root / "manifest.json",
                 {**approval, "owner_confirmed": True},
+                study_id=args.study,
             )
         elif args.command == "run":
             output = run_next(
                 store,
                 os.environ.get("P19_URL", "http://api:8000"),
-                Path(f".local/live/{STUDY}/run"),
+                root / "run",
+                study_id=args.study,
             )
         elif args.command == "assess":
-            LiveStudy(store).assess(args.case, args.decision, args.notes_file.read_text())
+            LiveStudy(store, args.study).assess(
+                args.case, args.decision, args.notes_file.read_text()
+            )
             output = {"case_id": args.case, "assistant_assessment": args.decision}
         else:
-            output = LiveStudy(store).status()
+            output = LiveStudy(store, args.study).status()
         print(json.dumps(output, default=str))
         return 1 if output.get("state") == "failed" else 0
     except Exception as exc:

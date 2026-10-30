@@ -23,14 +23,16 @@ def investigate(job_id):
     try:
         mode = os.environ.get("P19_PROVIDER", "controlled")
         study = os.environ.get("P19_LIVE_STUDY") if mode == "live" else None
-        if mode not in {"controlled", "live"} or (mode == "live" and study != "p19-real-20261030"):
+        if mode not in {"controlled", "live"} or (
+            mode == "live" and study != "p19-real-20261030-context-1"
+        ):
             print("worker_provider_configuration_invalid", flush=True)
             return
         store = JobStore()
         if mode == "live":
             from p19.live import LiveStudy
 
-            LiveStudy(store).require_preflight()
+            LiveStudy(store, study).require_preflight()
         run_job(
             job_id,
             socket.gethostname(),

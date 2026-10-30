@@ -15,7 +15,7 @@ from sqlalchemy import text
 from test_api import serve
 
 from p19.evidence import seed
-from p19.live import STUDY, LiveGuard, LiveStudy
+from p19.live import FOLLOWUP, STUDY, LiveGuard, LiveStudy
 from p19.runner import run_job
 
 
@@ -100,11 +100,11 @@ def transport_responder(seen, *, fail=None, count=1000):
 
 def test_live_overlay_isolates_secret(tool, tmp_path):
     config = json.loads(Path("compose.live.yaml").read_text())
-    tool.validate_secret_configuration(config)
+    tool.validate_secret_configuration(config, FOLLOWUP)
     unsafe = deepcopy(config)
     unsafe["services"]["api"] = {"secrets": ["claude_api_key"]}
     with pytest.raises(LiveGuard):
-        tool.validate_secret_configuration(unsafe)
+        tool.validate_secret_configuration(unsafe, FOLLOWUP)
     # Build only dummy context bytes, using the actual current exclusion rules.
     (tmp_path / "Dockerfile").write_text("FROM scratch\nCOPY . /\n")
     (tmp_path / ".dockerignore").write_bytes(Path(".dockerignore").read_bytes())
@@ -133,6 +133,7 @@ def test_preflight_freezes_without_inference(tool, trial):
         key,
         root / "manifest.json",
         {"owner_confirmed": True},
+        study_id=STUDY,
         transport=httpx.MockTransport(transport_responder(seen)),
     )
     assert len(seen) == 4
@@ -141,7 +142,7 @@ def test_preflight_freezes_without_inference(tool, trial):
     assert all(
         set(r) == {"model", "messages", "system", "thinking", "output_config"} for r in counts
     )
-    value = LiveStudy(store)
+    value = LiveStudy(store, STUDY)
     value.require_preflight()
     assert value.status()["consumed_slots"] == 0
     with pytest.raises(LiveGuard):
@@ -150,6 +151,7 @@ def test_preflight_freezes_without_inference(tool, trial):
             key,
             root / "different-name.json",
             {"owner_confirmed": True},
+            study_id=STUDY,
             transport=httpx.MockTransport(transport_responder(seen)),
         )
     assert len(seen) == 4
@@ -165,9 +167,10 @@ def test_bad_preflight_count_cannot_activate_allowance(tool, trial, count):
             key,
             root / "manifest.json",
             {"owner_confirmed": True},
+            study_id=STUDY,
             transport=httpx.MockTransport(transport_responder(seen, count=count)),
         )
-    assert LiveStudy(store).status()["state"] == "uninitialized"
+    assert LiveStudy(store, STUDY).status()["state"] == "uninitialized"
     assert all(r.url.path != "/v1/messages" for r in seen)
     assert any(
         json.loads(p.read_text())["status"] == "failed"
@@ -176,20 +179,35 @@ def test_bad_preflight_count_cannot_activate_allowance(tool, trial, count):
     )
 
 
-@pytest.mark.parametrize("fail", [None, "timeout", "invalid"])
+@pytest.mark.parametrize(
+    "study_id,fail",
+    [
+        (STUDY, None),
+        (STUDY, "timeout"),
+        (STUDY, "invalid"),
+        (FOLLOWUP, None),
+        (FOLLOWUP, "timeout"),
+    ],
+)
 def test_actual_cli_progress_retains_cases_and_stops_without_reposting(
-    tool, trial, monkeypatch, fail
+    tool, trial, monkeypatch, study_id, fail
 ):
     from p19 import claude
 
     store, root, key = trial
+    approval = {"owner_confirmed": True}
+    if study_id == FOLLOWUP:
+        from test_live_followup import prior_history
+
+        _, approval, _ = prior_history(store)
     seen = []
     responder = transport_responder(seen, fail=fail)
     tool.prepare(
         store,
         key,
         root / "manifest.json",
-        {"owner_confirmed": True},
+        approval,
+        study_id=study_id,
         transport=httpx.MockTransport(responder),
     )
     monkeypatch.setenv("P19_CLAUDE_KEY_FILE", str(key))
@@ -206,7 +224,7 @@ def test_actual_cli_progress_retains_cases_and_stops_without_reposting(
         while not stop.is_set():
             for job in store.all():
                 if job["state"] == "queued":
-                    run_job(job["id"], "offline-worker", store=store, live_study_id=STUDY)
+                    run_job(job["id"], "offline-worker", store=store, live_study_id=study_id)
             stop.wait(0.03)
 
     thread = threading.Thread(target=worker, daemon=True)
@@ -214,29 +232,47 @@ def test_actual_cli_progress_retains_cases_and_stops_without_reposting(
         thread.start()
         try:
             for n in range(1 if fail else 3):
-                receipt = tool.run_next(store, str(client.base_url), root / "run")
+                receipt = tool.run_next(
+                    store, str(client.base_url), root / "run", study_id=study_id
+                )
                 assert receipt["case_id"] == f"export_{n}"
+                intent = json.loads((root / "run" / f"export_{n}.intent.json").read_text())
+                assert intent["idempotency_key"] == f"live-{study_id}-export_{n}"
+                assert receipt["study_id"] == study_id
                 if fail:
                     assert receipt["state"] == "failed"
                     with pytest.raises(LiveGuard):
-                        tool.run_next(store, str(client.base_url), root / "new-run")
+                        tool.run_next(
+                            store, str(client.base_url), root / "new-run", study_id=study_id
+                        )
                 else:
                     assert receipt["state"] == "awaiting_assessment"
-                    resumed = tool.run_next(store, str(client.base_url), root / "new-name")
+                    resumed = tool.run_next(
+                        store, str(client.base_url), root / "new-name", study_id=study_id
+                    )
                     assert resumed["job_id"] == receipt["job_id"]
-                    LiveStudy(store).assess(f"export_{n}", "pass", "Assistant fixture assessment.")
+                    LiveStudy(store, study_id).assess(
+                        f"export_{n}", "pass", "Assistant fixture assessment."
+                    )
         finally:
             stop.set()
             thread.join(timeout=35)
             assert not thread.is_alive()
     inference = [r for r in seen if r.url.path == "/v1/messages"]
     assert len(inference) == (1 if fail else 3)
-    status = LiveStudy(store).status()
+    status = LiveStudy(store, study_id).status()
     assert status["state"] == ("stopped" if fail else "completed")
     if fail == "timeout":
         assert Decimal(status["reserved_usd"]) == Decimal("0.50256")
     else:
         assert Decimal(status["known_cost_usd"]) == Decimal("0.00015" if fail else "0.00045")
+    if study_id == FOLLOWUP:
+        from p19.live_history import verify_history
+
+        verify_history(store.db.engine, approval)
+        assert Decimal(status["cumulative_known_cost_usd"]) == Decimal(
+            status["known_cost_usd"]
+        ) + Decimal("0.0003902")
     receipts = list((root / "run").glob("*.receipt.json"))
     assert len(receipts) == (1 if fail else 3)
 
@@ -258,6 +294,7 @@ def test_driver_receipt_survives_failed_database_finalization(tool, trial, monke
         key,
         root / "manifest.json",
         {"owner_confirmed": True},
+        study_id=STUDY,
         transport=httpx.MockTransport(responder),
     )
     monkeypatch.setenv("P19_CLAUDE_KEY_FILE", str(key))
@@ -299,7 +336,7 @@ def test_driver_receipt_survives_failed_database_finalization(tool, trial, monke
     monkeypatch.setattr(LiveStudy, "stop", stop)
     monkeypatch.setattr(tool, "cli", cli)
     with serve(store) as client:
-        receipt = tool.run_next(store, str(client.base_url), root / "run")
+        receipt = tool.run_next(store, str(client.base_url), root / "run", study_id=STUDY)
     saved = json.loads((root / "run/export_0.receipt.json").read_text())
     assert saved == receipt and saved["job_id"] is not None
     assert saved["state"] == "failed"

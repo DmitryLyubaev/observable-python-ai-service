@@ -129,7 +129,7 @@ def _run_job(
                             ),
                             receipt_path=Path(
                                 os.environ.get(
-                                    "P19_LIVE_RECEIPTS", ".local/live/p19-real-20261030/provider"
+                                    "P19_LIVE_RECEIPTS", f".local/live/{live_study_id}/provider"
                                 )
                             )
                             / f"{attempt_id}.json",
