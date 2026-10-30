@@ -1,8 +1,11 @@
 # Publication readiness
 
-30 October 2026. This package is prepared for owner review. The proposed repository is
-`DmitryLyubaev/observable-python-ai-service`, public `main`; it has not been created or
-pushed. Hosted CI remains unproven until an approved push runs the workflow.
+30 October 2026. The owner approved the prepared package. The repository is now public
+at [DmitryLyubaev/observable-python-ai-service](https://github.com/DmitryLyubaev/observable-python-ai-service),
+with secret scanning and push protection enabled before the approved source push.
+[The initial exact-ref hosted run](https://github.com/DmitryLyubaev/observable-python-ai-service/actions/runs/41028172986)
+passed 134 tests and lock/lint/format. The preparation evidence below remains dated;
+actual publication results are recorded separately at the end.
 
 The presentation adds an architecture/evidence README, CV/interview notes and one
 offline GitHub Actions workflow. The current license-file state is retained: no
@@ -53,8 +56,8 @@ The final workflow replaces artifact upload with receipt logging/run summary. It
 summary shell block was executed directly against those fresh Linux receipts: success,
 134 tests, zero failures/errors/skips and the correct source were recorded. actionlint
 passed again. This reporting-only change leaves the tested verifier/application bytes
-unchanged. Local verification is separate from hosted Actions checkout/run-summary
-delivery, which must be observed after actual publication.
+unchanged. At preparation time this local verification did not establish hosted delivery;
+the actual post-approval hosted result is recorded below.
 
 ## Independent review
 
@@ -101,13 +104,13 @@ retry against older retained paths occurred.
 
 Final readback showed no owned running containers or 8199/16699 listeners. The two
 existing `p19-demo_database` and `p19-check_database` volumes remain. The temporary WSL
-shell was closed normally. There is still no product remote, public repository, hosted
-run or paid/cloud activity from this preparation. The exact resulting public ref/tree
-and local review bundle are named in the separate final owner proposal.
+shell was closed normally. That preparation made no remote/public/hosted or paid/cloud
+change. The exact approved ref/tree and local review bundle are named in the separate
+owner proposal; the later authorized publication follows.
 
 ## Approval boundary
 
-The final owner decision covers creating this named public repository, enabling its
+The recorded owner approval covers creating this named public repository, enabling its
 secret scanning/push protection, pushing only reviewed `main` and allowing the prepared
 offline workflow to run. It includes source history, synthetic fixtures, safe dated
 reports/traces and the historical screenshot, not ignored local configuration, raw
@@ -118,3 +121,25 @@ Both failed studies remain explicit. The latest model sample stopped on its firs
 missing-citation result, leaving the receipt case unrun. No public wording claims
 successful model quality, human validation, improved receipt behavior or production use.
 Four previously deferred diagnostic/test Minors remain documented in the follow-up report.
+
+## Approved public delivery
+
+Dmitry approved publication of `c5583e293918637ca98a7bd1ab368605d10c89be`, tree
+`92a1321e8671d1be6ce7a945468b64bcbbf0b132`, with 102 tracked files/31 reachable commits.
+The personal account, target absence and exact clean payload were rechecked before
+creating the named empty public repository. Secret scanning and push protection were
+enabled and read back before pushing only reviewed `main`, without force. Existing
+license-file state was retained.
+
+Initial hosted run **41028172986** succeeded on that exact commit: 134 tests passed in
+37.57 seconds, zero failures/errors/skips, plus lock/lint/format. Its runtime-source
+digest equals `669f99160ff70b9e393835278a57182acc5a3e3c91b644076e56a20550c7430d`.
+Generated configuration, verification receipt/JUnit summary delivery and owned-container
+cleanup all passed on the hosted runner. Anonymous repository, README, source and
+historical PNG reads succeeded; downloaded file hashes matched the reviewed files.
+
+This follow-up changes only publication status, verified links/badge and safe delivery
+metadata. Current reporting-ref CI is visible through the workflow badge/run history;
+the final exact reporting ref is verified in the portfolio closeout. No application,
+workflow, fixture, dependency, license, provider call or cloud resource changed during
+publication. Both unsuccessful model samples and all previously stated limits remain.

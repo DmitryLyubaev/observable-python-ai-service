@@ -1,5 +1,7 @@
 # Observable Python AI service
 
+[![Offline verification](https://github.com/DmitryLyubaev/observable-python-ai-service/actions/workflows/offline.yml/badge.svg?branch=main)](https://github.com/DmitryLyubaev/observable-python-ai-service/actions/workflows/offline.yml)
+
 A synthetic sales-export investigation service built with **Python, FastAPI,
 PostgreSQL, Redis/Celery and OpenTelemetry**. An operator submits a failed export,
 follows persisted progress over SSE and receives a structured explanation informed by
@@ -17,6 +19,7 @@ Measured 30 October 2026. Results below have different sources and sample sizes.
 | Evidence | Observed result | Scope and source |
 |---|---|---|
 | Latest integrated offline checks | **134 tests passed**, plus lock/lint/format | Controlled providers and transport stubs; PostgreSQL, Redis, real HTTP/SSE, Celery and Docker lifecycle checks. [Integration evidence](docs/evidence/context-followup-integration.json). |
+| Hosted offline CI | **134 tests passed**, zero failures/errors/skips, plus lock/lint/format | Ubuntu hosted runner on approved source `c5583e2`, 30 October 2026. [Verified run](https://github.com/DmitryLyubaev/observable-python-ai-service/actions/runs/41028172986). |
 | Original controlled load sample | 24 submissions at concurrency 4; 8 admitted/succeeded and 16 rejected by admission control | Historical implementation, maximum 8 active jobs and 1 provider call. Not rerun on the latest source and not a production capacity claim. [Local report](docs/local-report.md). |
 | Original Haiku sample | 1 pass, 1 semantic failure, 1 unrun after 2 inferences | Stopped when a receipt case returned unresolved. [Original live report](docs/live-report.md). |
 | Fresh context follow-up | 0 passes, 1 failed citation criterion, 2 unrun after 1 inference | Correct rejection outcome but missing the required evidence ID; stopped immediately. [Follow-up report](docs/context-followup-report.md). |
@@ -29,8 +32,8 @@ result. Both studies remain stopped; unspent allowance does not authorize contin
 An offline repair added persisted export/sale IDs to the model input and rejects missing
 or foreign bindings. The follow-up stopped before reaching its receipt case, so the
 repair's effect on that model response remains unproven. [Repair evidence](docs/receipt-context-repair.md).
-Hosted GitHub CI and public publication are pending review; the prepared workflow is
-offline only.
+The [repository is public](https://github.com/DmitryLyubaev/observable-python-ai-service).
+The verified hosted workflow is offline only; its test pass does not establish model quality.
 
 ## Workflow and architecture
 
@@ -109,11 +112,11 @@ Its canonical verifier checks the lock file, Ruff lint/format and pytest, retain
 source-bound receipts under ignored `.local/runs/`. Missing Docker services fail
 verification rather than silently skipping integration tests.
 
-The [prepared GitHub workflow](.github/workflows/offline.yml) uses the same verifier on
+The [GitHub workflow](.github/workflows/offline.yml) uses the same verifier on
 an Ubuntu hosted runner, generated local-only credentials and controlled providers.
 It receives no provider key and records receipts/test totals in job logs and the run
-summary, with no artifact upload. A passing
-hosted run will be reported only after it actually exists.
+summary, with no artifact upload. The first approved-source hosted run passed all 134
+tests; the badge links to current branch status. [Publication evidence](docs/evidence/publication.json).
 
 Checks and lifecycle tooling use the local Docker socket to control exact owned
 containers; API, dispatcher and worker do not receive it. Use this on a trusted local

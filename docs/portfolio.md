@@ -2,7 +2,9 @@
 
 Evidence dated 30 October 2026. Synthetic personal project; no commercial deployment,
 customer adoption or successful general model-quality study is claimed. The latest
-integrated offline result is 134 tests plus lock/lint/format. Hosted CI is pending.
+integrated offline result is 134 tests plus lock/lint/format, also verified in
+[hosted CI](https://github.com/DmitryLyubaev/observable-python-ai-service/actions/runs/41028172986).
+Public source: [observable-python-ai-service](https://github.com/DmitryLyubaev/observable-python-ai-service).
 
 ## CV wording
 

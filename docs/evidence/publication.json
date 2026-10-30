@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-30",
+  "repository": "https://github.com/DmitryLyubaev/observable-python-ai-service",
+  "visibility": "public",
+  "approved_initial_main": "c5583e293918637ca98a7bd1ab368605d10c89be",
+  "approved_initial_tree": "92a1321e8671d1be6ce7a945468b64bcbbf0b132",
+  "approved_initial_tracked_files": 102,
+  "approved_initial_reachable_commits": 31,
+  "security": {
+    "secret_scanning": "enabled",
+    "secret_scanning_push_protection": "enabled",
+    "read_back_before_initial_push": true
+  },
+  "initial_hosted_ci": {
+    "run_id": 41028172986,
+    "url": "https://github.com/DmitryLyubaev/observable-python-ai-service/actions/runs/41028172986",
+    "head_sha": "c5583e293918637ca98a7bd1ab368605d10c89be",
+    "conclusion": "success",
+    "tests": 134,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "pytest_seconds": 37.57,
+    "lock_lint_format": "passed",
+    "summary_delivery": "passed",
+    "owned_container_cleanup": "passed",
+    "runtime_source_digest": "669f99160ff70b9e393835278a57182acc5a3e3c91b644076e56a20550c7430d"
+  },
+  "anonymous_access": {
+    "repository_status": 200,
+    "readme_status": 200,
+    "historical_png_status": 200,
+    "api_source_status": 200,
+    "downloaded_file_hashes_match_approved_source": true
+  },
+  "publication_provider_calls": 0,
+  "model_studies_unchanged": true,
+  "cumulative_known_model_usage_usd_before_tax_fx": "0.0005674",
+  "unresolved_model_reservation_usd": "0",
+  "cloud_resources_provisioned": false,
+  "license_file_added": false,
+  "reporting_update": "Publication links/status/metadata only; final reporting-ref CI is recorded in portfolio closeout and visible in workflow run history."
+}
