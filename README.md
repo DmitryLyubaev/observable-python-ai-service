@@ -12,6 +12,12 @@ the second case: one passed, one failed semantic validation and one was unrun, a
 USD0.0003902 estimated known API usage cost before tax/FX. No production capacity or
 customer adoption is claimed.
 
+The later [offline receipt-context repair](docs/receipt-context-repair.md) carries
+persisted export/sale IDs into the model input and rejects invalid bindings before
+request construction. It does not establish improved model behavior or reopen the
+stopped study. Any fresh paid sample requires separate approval under the same
+cumulative USD2 ceiling.
+
 The workflow uses FastAPI, PostgreSQL, Redis/Celery, OpenTelemetry and a local Jaeger
 viewer. PostgreSQL owns job state, attempts and replayable progress. SSE disconnects
 do not cancel work. A committed dispatch intent marks the uncertainty boundary: a
