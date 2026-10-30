@@ -77,6 +77,34 @@ guarantees. Model quality/settlement/improvement, general production/adversarial
 and prior diagnostic limits remain outside this preparation. Closeout must verify the
 resulting ref/archive identities before outward approval.
 
+## Local integration and preservation
+
+Primary `main` fast-forwarded from `5024174` to `5e9abd8`. Integrated workflow lint,
+reachable-history scan, links, author/committer identity, source equality and exact
+executed summary-block checks passed. Runtime/fixture/container/dependency files have
+no diff from `5024174`; the cold Linux 134-test receipt remains applicable. Reporting
+metadata does not require repeating that unchanged full suite.
+
+All **246 private preparation files** were copied and SHA-256 checked under ignored
+primary `.local/pre-publication-2026-10-30-a2129b14`, with zero mismatches on full recheck.
+The cold Linux evidence copy separately verified 192 files with zero mismatches. Its
+canonical receipt directory is also preserved under primary `.local/runs/`. No provider
+credential was read/copied or included in these preparation artifacts.
+
+Unforced Linux snapshot cleanup reached write-protected files and was interrupted,
+leaving the owned `/tmp/p19-publication-20261030-1fd730ae` snapshot retained (294 files
+on readback). Its temporary Docker test volume was already removed after preservation.
+Unforced Git worktree removal deleted the new checkout's files/registration, but Windows
+refused the empty root directory; zero files remained. The empty `.worktrees/publication`
+directory and fully merged `codex/publication` branch remain. No forced cleanup or
+retry against older retained paths occurred.
+
+Final readback showed no owned running containers or 8199/16699 listeners. The two
+existing `p19-demo_database` and `p19-check_database` volumes remain. The temporary WSL
+shell was closed normally. There is still no product remote, public repository, hosted
+run or paid/cloud activity from this preparation. The exact resulting public ref/tree
+and local review bundle are named in the separate final owner proposal.
+
 ## Approval boundary
 
 The final owner decision covers creating this named public repository, enabling its
