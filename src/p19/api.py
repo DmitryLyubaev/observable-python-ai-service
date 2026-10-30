@@ -13,14 +13,20 @@ from p19.stream import iter_events
 
 
 def public_view(job):
-    return {
+    view = {
         key: value
         for key, value in job.items()
         if key not in {"idempotency_key", "body_hash", "trace_context"}
     }
+    parent = job["trace_context"].get("traceparent")
+    view["trace_id"] = parent.split("-")[1] if parent else None
+    return view
 
 
 def create_app(store=None):
+    from p19.telemetry import configure_telemetry
+
+    configure_telemetry("p19-api")
     jobs = store or JobStore()
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -74,7 +80,12 @@ def create_app(store=None):
                 inject(context)
             except ImportError:
                 pass
-            job = jobs.admit(record, request.headers.get("Idempotency-Key"), context)
+            from p19.telemetry import safe_span
+
+            with safe_span("investigation.admit") as span:
+                inject(context)
+                job = jobs.admit(record, request.headers.get("Idempotency-Key"), context)
+                span.set_attribute("job.id", job["id"])
         except (ValidationError, ValueError, TypeError):
             raise HTTPException(422, "invalid_request") from None
         jobs.observe(job["id"], "admission", {"duration_seconds": time.monotonic() - started})
@@ -103,6 +114,9 @@ def create_app(store=None):
             headers={"Cache-Control": "no-cache"},
         )
 
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+    FastAPIInstrumentor.instrument_app(app)
     return app
 
 

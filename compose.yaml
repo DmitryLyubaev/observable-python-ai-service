@@ -59,6 +59,9 @@ services:
     <<: *app
     command: [python, -m, p19.api]
     ports: ['127.0.0.1:8199:8000']
+  jaeger:
+    image: jaegertracing/jaeger:2.22.0@sha256:836b967b5abcf1f7758066aa6b348619267a2f1459f72d472840570f9bd88a17
+    ports: ['127.0.0.1:16699:16686']
   worker:
     <<: *app
     command: [celery, -A, p19.worker:app, worker, --pool=prefork, --concurrency=1, --prefetch-multiplier=1, --loglevel=WARNING, --without-gossip, --without-mingle, --without-heartbeat]

@@ -7,7 +7,7 @@ def test_failed_dispatch_commit_prevents_call(store):
     job = store.admit(record(), "dispatch_fault")
     run_job(job["id"], "worker", store=store, fault="dispatch")
     assert not store.get(job["id"])["attempts"]
-    assert not store.observations(job["id"])
+    assert not [x for x in store.observations(job["id"]) if x["kind"] == "provider_start"]
 
 
 def test_unsaved_reply_remains_unknown(store):

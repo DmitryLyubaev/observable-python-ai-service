@@ -9,9 +9,19 @@ from p19.controlled import ControlledProvider
 from p19.evidence import lookup, seed
 from p19.jobs import JobStore, json_value
 from p19.provider import InvalidProviderOutput, ProviderFailure, validate_reply
+from p19.telemetry import safe_span
 
 
 def run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=None, fault=None):
+    store = store or JobStore()
+    job = store.get(job_id)
+    with safe_span("worker.execute", job_id, job["trace_context"]):
+        return _run_job(
+            job_id, worker_instance_id, store=store, profile=profile, hook=hook, fault=fault
+        )
+
+
+def _run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=None, fault=None):
     store = store or JobStore()
     job = store.claim(job_id, worker_instance_id)
     if job is None:
@@ -24,7 +34,10 @@ def run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=N
         if profile == "lookup_timeout":
             store.finish(job_id, worker_instance_id, "failed", "lookup_timeout")
             return
-        evidence = lookup(job["failure"], store)
+        lookup_started = time.monotonic()
+        with safe_span("evidence.lookup", job_id):
+            evidence = lookup(job["failure"], store)
+        store.observe(job_id, "lookup", {"duration_seconds": time.monotonic() - lookup_started})
         with store.db.write() as conn:
             conn.execute(
                 text(
@@ -45,9 +58,12 @@ def run_job(job_id, worker_instance_id, *, store=None, profile="success", hook=N
             hook("after_dispatch")
             store.observe(job_id, "provider_start", {"attempt_id": attempt_id, "profile": profile})
             try:
-                reply = ControlledProvider(profile).invoke(
-                    job["failure"], evidence, number, min(10, deadline - time.monotonic())
-                )
+                with safe_span("provider.attempt", job_id) as span:
+                    span.set_attribute("attempt.id", attempt_id)
+                    span.set_attribute("provider.mode", "controlled")
+                    reply = ControlledProvider(profile).invoke(
+                        job["failure"], evidence, number, min(10, deadline - time.monotonic())
+                    )
                 store.observe(job_id, "provider_end", {"attempt_id": attempt_id})
                 hook("after_reply_before_commit")
                 if fault == "result":

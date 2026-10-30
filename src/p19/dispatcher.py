@@ -4,6 +4,7 @@ from sqlalchemy import text
 
 from p19.broker import publish
 from p19.jobs import JobStore
+from p19.telemetry import configure_telemetry, safe_span
 
 
 class Dispatcher:
@@ -17,7 +18,8 @@ class Dispatcher:
                 reserved = self.store.reserve_publication(job["id"], now)
                 if reserved:
                     try:
-                        self.publisher(job["id"], reserved["trace_context"])
+                        with safe_span("queue.publish", job["id"], reserved["trace_context"]):
+                            self.publisher(job["id"], reserved["trace_context"])
                         published += 1
                     except Exception:
                         self.store.observe(job["id"], "publication_failure")
@@ -25,6 +27,10 @@ class Dispatcher:
 
 
 def main():
+    configure_telemetry("p19-dispatcher")
+    from opentelemetry.instrumentation.celery import CeleryInstrumentor
+
+    CeleryInstrumentor().instrument()
     store = JobStore()
     with store.db.engine.connect() as conn:
         if not conn.execute(text("SELECT pg_try_advisory_lock(190020)")).scalar_one():
