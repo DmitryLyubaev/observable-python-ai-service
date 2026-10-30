@@ -43,7 +43,9 @@ Linux runtime source fingerprint:
 `cb46e62d3fccdfba586f0603a4bc96f0821c98afaadd431b526b0a40dad9dcb6`.
 One fresh read-only review of `faa825b..f140404` found zero Critical, Important or new
 Minor findings. It checked all five focus conditions and the separate follow-up proposal.
-Local integration evidence is recorded below after completion.
+Primary `main` fast-forwarded from `faa825b` to `50e3a1c`. Fresh primary canonical
+verification passed **117 tests in 117.34 seconds**, plus lock/lint/format, receipt
+`verify-84395c7e7d5b4bc39082e4bcb4431e12`, with the same runtime fingerprint above.
 The original 24-submission controlled load experiment was not repeated.
 Full-suite fixtures and transport stubs are offline checks, not new model evaluations.
 
@@ -69,8 +71,28 @@ real-ledger reconciliation await approved preflight (public rates were rechecked
 Those uncertainties can stop the proposed run, not justify a scope/rate change. Existing
 diagnostic Minors stay deferred, so some context still requires persisted-event readback.
 Production-scale readiness is excluded by the user's scope, so no such claim follows.
-Primary integration verification is still required after review; a failed primary check
-would leave the checkout/branch retained. Git worktree fallback was used after the native
+Primary integration verification was required after review and passed; a failure would
+have retained the checkout/branch. Git worktree fallback was used after the native
 tool rejected this product root; isolation metadata differs, not the implementation.
 The direct proceed instruction authorized this named offline repair and proposal with
 the existing local-main choice, with no paid/public side effects.
+
+## Preservation and cleanup
+
+All **206 private execution/configuration files**, including the task ledger and
+candidate receipts, were copied and SHA-256 verified under primary ignored
+`.local/pre-integration-receipt-2026-10-30-62f0973f`; a full archive recheck found zero
+mismatches. Only local application configuration was included, with no provider key.
+Primary verification has its separate original receipt under `.local/runs/`.
+Historical live report/evidence, fixtures and study schema have no diff from `faa825b`.
+
+After preservation and successful primary checks, unforced `git worktree remove`
+removed the new checkout's files and registration, then reported permission denied
+when deleting its empty root directory. Readback found zero remaining files. That
+empty `.worktrees/receipt-context` directory and fully merged `codex/receipt-context`
+branch were retained; no forced or alternative deletion was attempted. The old
+`.worktrees/local` checkout, branch and scratch were not touched.
+
+Final readback showed zero running `p19-demo`/`p19-check` containers and no listeners
+on 8199/16699. Both database volumes remain. The owned temporary WSL shell was closed
+normally. No public push, hosted CI, cloud provisioning or additional paid call occurred.
