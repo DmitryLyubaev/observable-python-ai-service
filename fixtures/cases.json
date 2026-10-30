@@ -1,0 +1,5 @@
+[
+  {"export_id":"export_0","sale_id":"sale_0","failure_code":"rejected","occurred_at":"2026-10-30T00:00:00Z","diagnostic_text":"Export rejected"},
+  {"export_id":"export_1","sale_id":"sale_1","failure_code":"timeout","occurred_at":"2026-10-30T00:00:00Z","diagnostic_text":"No response before deadline"},
+  {"export_id":"export_2","sale_id":"sale_2","failure_code":"timeout","occurred_at":"2026-10-30T00:00:00Z","diagnostic_text":"Receiver outcome unavailable"}
+]

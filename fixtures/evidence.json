@@ -1,0 +1,4 @@
+[
+  {"id":"ev_reject","export_id":"export_0","sale_id":"sale_0","fact":{"kind":"rejection","reason":"fictional account code invalid"}},
+  {"id":"ev_receipt","export_id":"export_1","sale_id":"sale_1","fact":{"kind":"receipt","receiver_reference":"receipt_101"}}
+]
