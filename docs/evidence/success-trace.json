@@ -1,0 +1,420 @@
+[
+  {
+    "traceID": "948a8e36e52fe722ecc9664d3147e1e0",
+    "spans": [
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "ac21b4d4e7814117",
+        "parentSpanId": "937939ddc299cc00",
+        "flags": 256,
+        "name": "POST /investigations http receive",
+        "kind": 1,
+        "startTimeUnixNano": "1793323732477360779",
+        "endTimeUnixNano": "1793323732477398880",
+        "attributes": [
+          {
+            "key": "asgi.event.type",
+            "value": {
+              "stringValue": "http.request"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "POST /investigations http receive",
+        "serviceName": "p19-api"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "4a3c5873dbd3f816",
+        "parentSpanId": "937939ddc299cc00",
+        "flags": 256,
+        "name": "POST /investigations http send",
+        "kind": 1,
+        "startTimeUnixNano": "1793323732518077656",
+        "endTimeUnixNano": "1793323732518132357",
+        "attributes": [
+          {
+            "key": "asgi.event.type",
+            "value": {
+              "stringValue": "http.response.start"
+            }
+          },
+          {
+            "key": "http.status_code",
+            "value": {
+              "intValue": "202"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "POST /investigations http send",
+        "serviceName": "p19-api"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "7b8684ad46cf12e0",
+        "parentSpanId": "937939ddc299cc00",
+        "flags": 256,
+        "name": "POST /investigations http send",
+        "kind": 1,
+        "startTimeUnixNano": "1793323732518542764",
+        "endTimeUnixNano": "1793323732518561964",
+        "attributes": [
+          {
+            "key": "asgi.event.type",
+            "value": {
+              "stringValue": "http.response.body"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "POST /investigations http send",
+        "serviceName": "p19-api"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "1b1437a11a44c9d2",
+        "parentSpanId": "937939ddc299cc00",
+        "flags": 256,
+        "name": "POST /investigations http send",
+        "kind": 1,
+        "startTimeUnixNano": "1793323732518723667",
+        "endTimeUnixNano": "1793323732518740367",
+        "attributes": [
+          {
+            "key": "asgi.event.type",
+            "value": {
+              "stringValue": "http.response.body"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "POST /investigations http send",
+        "serviceName": "p19-api"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "937939ddc299cc00",
+        "flags": 256,
+        "name": "POST /investigations",
+        "kind": 2,
+        "startTimeUnixNano": "1793323732418692205",
+        "endTimeUnixNano": "1793323732518862669",
+        "attributes": [
+          {
+            "key": "http.flavor",
+            "value": {
+              "stringValue": "1.1"
+            }
+          },
+          {
+            "key": "http.host",
+            "value": {
+              "stringValue": "172.21.0.7:8000"
+            }
+          },
+          {
+            "key": "http.method",
+            "value": {
+              "stringValue": "POST"
+            }
+          },
+          {
+            "key": "http.route",
+            "value": {
+              "stringValue": "/investigations"
+            }
+          },
+          {
+            "key": "http.scheme",
+            "value": {
+              "stringValue": "http"
+            }
+          },
+          {
+            "key": "http.server_name",
+            "value": {
+              "stringValue": "api:8000"
+            }
+          },
+          {
+            "key": "http.status_code",
+            "value": {
+              "intValue": "202"
+            }
+          },
+          {
+            "key": "http.target",
+            "value": {
+              "stringValue": "/investigations"
+            }
+          },
+          {
+            "key": "http.url",
+            "value": {
+              "stringValue": "http://api:8000/investigations"
+            }
+          },
+          {
+            "key": "http.user_agent",
+            "value": {
+              "stringValue": "python-httpx/0.28.1"
+            }
+          },
+          {
+            "key": "net.host.port",
+            "value": {
+              "intValue": "8000"
+            }
+          },
+          {
+            "key": "net.peer.ip",
+            "value": {
+              "stringValue": "172.21.0.8"
+            }
+          },
+          {
+            "key": "net.peer.port",
+            "value": {
+              "intValue": "51300"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "POST /investigations",
+        "serviceName": "p19-api"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "553457a06c4f3516",
+        "parentSpanId": "937939ddc299cc00",
+        "flags": 256,
+        "name": "investigation.admit",
+        "kind": 1,
+        "startTimeUnixNano": "1793323732477916289",
+        "endTimeUnixNano": "1793323732492909038",
+        "attributes": [
+          {
+            "key": "job.id",
+            "value": {
+              "stringValue": "e5e7592c-db2a-49e3-8878-6119c4bb3ec6"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "investigation.admit",
+        "serviceName": "p19-api"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "535b62a9001aa65e",
+        "parentSpanId": "9af25c7520beb375",
+        "flags": 256,
+        "name": "apply_async/p19.investigate",
+        "kind": 4,
+        "startTimeUnixNano": "1793323733142546032",
+        "endTimeUnixNano": "1793323733142650234",
+        "attributes": [
+          {
+            "key": "celery.action",
+            "value": {
+              "stringValue": "apply_async"
+            }
+          },
+          {
+            "key": "celery.task_name",
+            "value": {
+              "stringValue": "p19.investigate"
+            }
+          },
+          {
+            "key": "messaging.destination",
+            "value": {
+              "stringValue": "p19"
+            }
+          },
+          {
+            "key": "messaging.destination_kind",
+            "value": {
+              "stringValue": "queue"
+            }
+          },
+          {
+            "key": "messaging.message.id",
+            "value": {
+              "stringValue": "555cf85a-fa0d-489b-9ebf-b857d439370a"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "apply_async/p19.investigate",
+        "serviceName": "p19-dispatcher"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "9af25c7520beb375",
+        "parentSpanId": "553457a06c4f3516",
+        "flags": 768,
+        "name": "queue.publish",
+        "kind": 1,
+        "startTimeUnixNano": "1793323732844744684",
+        "endTimeUnixNano": "1793323733148305228",
+        "attributes": [
+          {
+            "key": "job.id",
+            "value": {
+              "stringValue": "e5e7592c-db2a-49e3-8878-6119c4bb3ec6"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "queue.publish",
+        "serviceName": "p19-dispatcher"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "8af663fff075cc48",
+        "parentSpanId": "3a15c272fc610a37",
+        "flags": 256,
+        "name": "evidence.lookup",
+        "kind": 1,
+        "startTimeUnixNano": "1793323733580872316",
+        "endTimeUnixNano": "1793323733582595544",
+        "attributes": [
+          {
+            "key": "job.id",
+            "value": {
+              "stringValue": "e5e7592c-db2a-49e3-8878-6119c4bb3ec6"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "evidence.lookup",
+        "serviceName": "p19-worker"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "fa746463faf17638",
+        "parentSpanId": "3a15c272fc610a37",
+        "flags": 256,
+        "name": "provider.attempt",
+        "kind": 1,
+        "startTimeUnixNano": "1793323733602347973",
+        "endTimeUnixNano": "1793323733602438674",
+        "attributes": [
+          {
+            "key": "attempt.id",
+            "value": {
+              "stringValue": "6b0c32e8-864f-4854-83e7-4c0c40413834"
+            }
+          },
+          {
+            "key": "job.id",
+            "value": {
+              "stringValue": "e5e7592c-db2a-49e3-8878-6119c4bb3ec6"
+            }
+          },
+          {
+            "key": "provider.mode",
+            "value": {
+              "stringValue": "controlled"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "provider.attempt",
+        "serviceName": "p19-worker"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "3a15c272fc610a37",
+        "parentSpanId": "553457a06c4f3516",
+        "flags": 768,
+        "name": "worker.execute",
+        "kind": 1,
+        "startTimeUnixNano": "1793323733567779798",
+        "endTimeUnixNano": "1793323733621155185",
+        "attributes": [
+          {
+            "key": "job.id",
+            "value": {
+              "stringValue": "e5e7592c-db2a-49e3-8878-6119c4bb3ec6"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "worker.execute",
+        "serviceName": "p19-worker"
+      },
+      {
+        "traceId": "948a8e36e52fe722ecc9664d3147e1e0",
+        "spanId": "91255eb8b513e2b6",
+        "parentSpanId": "535b62a9001aa65e",
+        "flags": 768,
+        "name": "run/p19.investigate",
+        "kind": 5,
+        "startTimeUnixNano": "1793323733151621183",
+        "endTimeUnixNano": "1793323733621590492",
+        "attributes": [
+          {
+            "key": "celery.action",
+            "value": {
+              "stringValue": "run"
+            }
+          },
+          {
+            "key": "celery.delivery_info",
+            "value": {
+              "stringValue": "{'exchange': '', 'routing_key': 'p19', 'priority': 0, 'redelivered': False}"
+            }
+          },
+          {
+            "key": "celery.hostname",
+            "value": {
+              "stringValue": "gen1@9b1d7d117c6b"
+            }
+          },
+          {
+            "key": "celery.reply_to",
+            "value": {
+              "stringValue": "4352947a-5681-3f78-8965-313a6c377116"
+            }
+          },
+          {
+            "key": "celery.state",
+            "value": {
+              "stringValue": "SUCCESS"
+            }
+          },
+          {
+            "key": "celery.task_name",
+            "value": {
+              "stringValue": "p19.investigate"
+            }
+          },
+          {
+            "key": "messaging.conversation_id",
+            "value": {
+              "stringValue": "555cf85a-fa0d-489b-9ebf-b857d439370a"
+            }
+          },
+          {
+            "key": "messaging.destination",
+            "value": {
+              "stringValue": "p19"
+            }
+          },
+          {
+            "key": "messaging.message.id",
+            "value": {
+              "stringValue": "555cf85a-fa0d-489b-9ebf-b857d439370a"
+            }
+          }
+        ],
+        "status": {},
+        "operationName": "run/p19.investigate",
+        "serviceName": "p19-worker"
+      }
+    ]
+  }
+]

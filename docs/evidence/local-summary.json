@@ -1,0 +1,297 @@
+{
+  "date": "2026-10-30",
+  "load": {
+    "manifest": {
+      "source_digest": "4d4f3f1a4d56df69998c5adb4d9f0439fa66f17c292c32273375444c1c5bd00a",
+      "fixture_digests": {
+        "cases.json": "34320becd7802404c2d674ffbda2de649235e03c2319490ea26ad4366f92c75f",
+        "evidence.json": "8643ffa1ccd3527c08c0431bd9f754fb4fa0f803124bbdf6edea156f84f4f399",
+        "profiles.json": "9de7c7519b873b6bfe191240819e3d81569e2f35419e9c62db1c94d3af3bbd28"
+      },
+      "groups": {
+        "A1": "required",
+        "A2": "required",
+        "A3": "required",
+        "A4": "required",
+        "A5": "required",
+        "A6": "required",
+        "A7": "required",
+        "A8": "required",
+        "A9": "required",
+        "A10": "required",
+        "A11": "required",
+        "A12": "required"
+      },
+      "load": {
+        "submissions": 24,
+        "concurrency": 4,
+        "delay_ms": 200
+      },
+      "expected_outcomes": [
+        "rejected",
+        "received",
+        "unresolved"
+      ],
+      "provider": "controlled"
+    },
+    "responses": [
+      {
+        "index": 0,
+        "status": 202,
+        "job_id": "b5065401-4a48-4a04-b9cd-eccc0997b263",
+        "seconds": 0.23436118500012526
+      },
+      {
+        "index": 1,
+        "status": 202,
+        "job_id": "7d949662-d987-49a3-95f2-355cba13ad07",
+        "seconds": 0.1883481219999794
+      },
+      {
+        "index": 2,
+        "status": 202,
+        "job_id": "8aa1be55-32f4-4eb7-8753-64c9a696fce2",
+        "seconds": 0.23431528400010393
+      },
+      {
+        "index": 3,
+        "status": 202,
+        "job_id": "fb96bf70-b568-4a28-9bf0-986459ce4f14",
+        "seconds": 0.20472129300014785
+      },
+      {
+        "index": 4,
+        "status": 202,
+        "job_id": "e89d0b26-54e6-4486-8a1c-bfa5c84822bd",
+        "seconds": 0.06447346799996012
+      },
+      {
+        "index": 5,
+        "status": 202,
+        "job_id": "b8cb4bb3-833d-4501-96e8-b20ca79b4fb2",
+        "seconds": 0.08325398000010864
+      },
+      {
+        "index": 6,
+        "status": 202,
+        "job_id": "2a10148c-175b-4b4b-b360-94dc57e5df2a",
+        "seconds": 0.09341004799989605
+      },
+      {
+        "index": 7,
+        "status": 202,
+        "job_id": "003d15e4-3190-4844-ba1f-52c61e905ba7",
+        "seconds": 0.12007639100011147
+      },
+      {
+        "index": 8,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.10272070299993175
+      },
+      {
+        "index": 9,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.0785100009998132
+      },
+      {
+        "index": 10,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.07450493500004995
+      },
+      {
+        "index": 11,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.0809564420001152
+      },
+      {
+        "index": 12,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.07606616099997154
+      },
+      {
+        "index": 13,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.07872800500013
+      },
+      {
+        "index": 14,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.07093017499983034
+      },
+      {
+        "index": 15,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.07642046699993443
+      },
+      {
+        "index": 16,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.07700787699991452
+      },
+      {
+        "index": 17,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.07378662299993266
+      },
+      {
+        "index": 18,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.07900681000000986
+      },
+      {
+        "index": 19,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.08339668199982953
+      },
+      {
+        "index": 20,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.08541891599998053
+      },
+      {
+        "index": 21,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.0811817459998565
+      },
+      {
+        "index": 22,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.0665539029998854
+      },
+      {
+        "index": 23,
+        "status": 429,
+        "job_id": null,
+        "seconds": 0.04697787899999639
+      }
+    ],
+    "summary": {
+      "jobs": 8,
+      "terminal_counts": {
+        "succeeded": 8
+      },
+      "attempts": 8,
+      "unknown_usage_attempts": 0,
+      "simulated_usage_attempts": 8,
+      "provider_provenance": "controlled",
+      "known_real_cost_usd": null,
+      "queue_seconds": {
+        "n": 8,
+        "min": 3.38709,
+        "median": 4.333475,
+        "max": 5.209148
+      },
+      "completion_seconds": {
+        "n": 8,
+        "min": 3.630793,
+        "median": 4.580158,
+        "max": 5.457353
+      },
+      "provider_seconds": {
+        "n": 8,
+        "min": 0.20703851999996914,
+        "median": 0.21009896999987632,
+        "max": 0.2143355400000928
+      },
+      "clock_limits": "Within-process monotonic durations; cross-stage timestamps use local PostgreSQL UTC clock.",
+      "limits": "Synthetic controlled-provider local observations; no real-provider cost, quality or capacity claim."
+    },
+    "admission_seconds": {
+      "n": 24,
+      "min": 0.04697787899999639,
+      "median": 0.07998162600006253,
+      "max": 0.23436118500012526
+    },
+    "max_active_jobs": 8,
+    "max_active_provider_calls": 1,
+    "profile": "load",
+    "submissions": 24,
+    "client_concurrency": 4,
+    "simulated_delay_ms": 200
+  },
+  "failure_demo": {
+    "source_digest": "4d4f3f1a4d56df69998c5adb4d9f0439fa66f17c292c32273375444c1c5bd00a",
+    "scenarios": [
+      {
+        "state": "cancelled",
+        "scenario": "cancel_before_dispatch",
+        "cancel_requested": true,
+        "attempts": 0
+      },
+      {
+        "state": "succeeded",
+        "scenario": "cli_disconnect_and_resume",
+        "cancel_requested": false,
+        "attempts": 1
+      },
+      {
+        "state": "outcome_unknown",
+        "scenario": "cancel_after_dispatch_timeout",
+        "cancel_requested": true,
+        "attempts": 1
+      },
+      {
+        "state": "interrupted",
+        "scenario": "crash_before_dispatch",
+        "cancel_requested": false,
+        "attempts": 0
+      },
+      {
+        "state": "outcome_unknown",
+        "scenario": "crash_after_reply_before_commit",
+        "cancel_requested": false,
+        "attempts": 1
+      }
+    ]
+  },
+  "demo": {
+    "source_digest": "4d4f3f1a4d56df69998c5adb4d9f0439fa66f17c292c32273375444c1c5bd00a",
+    "summary": {
+      "jobs": 3,
+      "terminal_counts": {
+        "succeeded": 3
+      },
+      "attempts": 3,
+      "unknown_usage_attempts": 0,
+      "simulated_usage_attempts": 3,
+      "provider_provenance": "controlled",
+      "known_real_cost_usd": null,
+      "queue_seconds": {
+        "n": 3,
+        "min": 0.281082,
+        "median": 0.965737,
+        "max": 1.086465
+      },
+      "completion_seconds": {
+        "n": 3,
+        "min": 0.32058,
+        "median": 1.003917,
+        "max": 1.133552
+      },
+      "provider_seconds": {
+        "n": 3,
+        "min": 0.005076885000107723,
+        "median": 0.005336288000080458,
+        "max": 0.009126652000077229
+      },
+      "clock_limits": "Within-process monotonic durations; cross-stage timestamps use local PostgreSQL UTC clock.",
+      "limits": "Synthetic controlled-provider local observations; no real-provider cost, quality or capacity claim."
+    },
+    "passed_cases": 3
+  }
+}

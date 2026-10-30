@@ -49,9 +49,21 @@ services:
       - ./fixtures:/app/fixtures:ro
       - ./scripts:/app/scripts:ro
     command: [uv, run, --frozen, pytest, -q]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      worker: {condition: service_started}
+      jaeger: {condition: service_started}
   tools:
     <<: *app
     command: [python, -m, p19.cli, --help]
+  lifecycle:
+    <<: *app
+    user: root
+    volumes:
+      - ./.local:/app/.local
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: [python, -m, p19.lifecycle, --help]
   dispatcher:
     <<: *app
     command: [python, -m, p19.dispatcher]

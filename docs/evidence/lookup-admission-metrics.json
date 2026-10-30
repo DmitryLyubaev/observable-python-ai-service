@@ -1,0 +1,1 @@
+{"sample": "eight admitted jobs from the original 24-submission load", "lookup_seconds": {"n": 8, "min": 0.0014808250000442058, "median": 0.002524941999922703, "max": 0.004592276000039419}, "admission_server_seconds": {"n": 8, "min": 0.009251752999944074, "median": 0.01284866299999976, "max": 0.03454547299998012}, "provider_calls": 8}
