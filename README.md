@@ -12,11 +12,16 @@ the second case: one passed, one failed semantic validation and one was unrun, a
 USD0.0003902 estimated known API usage cost before tax/FX. No production capacity or
 customer adoption is claimed.
 
+The separately approved [context follow-up](docs/context-followup-report.md) also
+stopped: its first case returned the correct rejection but omitted the required citation.
+Only one new inference ran; the other two cases were unrun. Cumulative known usage
+across both stopped studies is USD0.0005674 before tax/FX, with no unresolved reservation.
+
 The later [offline receipt-context repair](docs/receipt-context-repair.md) carries
 persisted export/sale IDs into the model input and rejects invalid bindings before
-request construction. It does not establish improved model behavior or reopen the
-stopped study. Any fresh paid sample requires separate approval under the same
-cumulative USD2 ceiling.
+request construction. The follow-up did not reach the receipt case, so its effect on
+that model response remains untested. Both studies are stopped; unspent balance does
+not authorize another sample under the cumulative USD2 ceiling.
 
 The workflow uses FastAPI, PostgreSQL, Redis/Celery, OpenTelemetry and a local Jaeger
 viewer. PostgreSQL owns job state, attempts and replayable progress. SSE disconnects
@@ -104,7 +109,7 @@ Per-study slots share one durable allowance and the transaction lock. Unknown us
 retains its reservation and stops that run; failure never authorizes a replacement.
 No retries, warming, fallback or paid judge is allowed. Source/request/fixture hashes,
 10/30-second bounds and the original failed evidence are preserved. Actual improvement
-remains untested until the approved follow-up is executed. Public publication/hosted CI
+on the receipt case remains untested because the follow-up stopped before it. Public publication/hosted CI
 and any additional study remain separate decisions.
 
 The dated [local report](docs/local-report.md) records actual checks, source/runtime

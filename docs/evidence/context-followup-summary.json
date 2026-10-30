@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-30",
+  "scope": "bounded synthetic CV demonstration",
+  "study_id": "p19-real-20261030-context-1",
+  "state": "stopped",
+  "reason": "live_driver_failure",
+  "source_commit": "944ae75ce596ccf688a002c522374f17db6d6c84",
+  "runtime_source_digest": "669f99160ff70b9e393835278a57182acc5a3e3c91b644076e56a20550c7430d",
+  "overlay_sha256": "e62c9baa371a17bb49e7d3a41f9ed9152f14ebb8d7fd35045d94a92f87fbd7b1",
+  "sample": {
+    "inference_calls": 1,
+    "passed_cases": 0,
+    "failed_cases": 1,
+    "unrun_cases": [
+      "export_1",
+      "export_2"
+    ],
+    "job_state": "succeeded",
+    "actual_outcome": "rejected",
+    "actual_evidence_ids": [],
+    "required_evidence_ids": [
+      "ev_reject"
+    ],
+    "http_status": 200,
+    "stop_reason": "end_turn",
+    "assistant_assessment": "fail",
+    "database_assessment": null
+  },
+  "usage": {
+    "model": "claude-haiku-5-5",
+    "cost_usd": "0.0001772",
+    "rate_date": "2026-10-30",
+    "provenance": "provider",
+    "input_tokens": 752,
+    "output_tokens": 204,
+    "thinking_tokens_included": 0
+  },
+  "timings": {
+    "jobs": 1,
+    "terminal_counts": {
+      "succeeded": 1
+    },
+    "attempts": 1,
+    "unknown_usage_attempts": 0,
+    "simulated_usage_attempts": 0,
+    "provider_provenance": "live",
+    "known_real_cost_usd": "0.0001772",
+    "queue_seconds": {
+      "n": 1,
+      "min": 1.282796,
+      "median": 1.282796,
+      "max": 1.282796
+    },
+    "completion_seconds": {
+      "n": 1,
+      "min": 6.675342,
+      "median": 6.675342,
+      "max": 6.675342
+    },
+    "provider_seconds": {
+      "n": 1,
+      "min": 5.31329391700001,
+      "median": 5.31329391700001,
+      "max": 5.31329391700001
+    },
+    "clock_limits": "Within-process monotonic durations; cross-stage timestamps use local PostgreSQL UTC clock.",
+    "limits": "Synthetic local observations; known usage estimates exclude unresolved usage and settled billing. No general quality or production-capacity claim."
+  },
+  "preflight": {
+    "metadata_requests": 1,
+    "token_count_requests": 3,
+    "input_estimates": [
+      752,
+      755,
+      698
+    ]
+  },
+  "cumulative": {
+    "inference_calls": 3,
+    "input_tokens": 2219,
+    "output_tokens": 691,
+    "known_cost_usd": "0.0005674",
+    "reserved_usd": "0",
+    "cap_usd": "2",
+    "unspent_usd": "1.9994326"
+  },
+  "original": {
+    "unchanged": true,
+    "state": "stopped",
+    "consumed_slots": 2,
+    "known_cost_usd": "0.0003902",
+    "snapshot_sha256": "7c4a9840f965578ae1d29a1cfc718882cbeffd43ea34a781a0e8289cc7f5974f",
+    "unrun_case": "export_2"
+  },
+  "trace": {
+    "trace_count": 1,
+    "span_count": 12,
+    "services": [
+      "p19-api",
+      "p19-dispatcher",
+      "p19-worker"
+    ]
+  },
+  "limits": "Known API usage estimate before tax/FX, not settled billing. No retries. Receipt-context benefit untested because new export_1 was unrun. Assistant assessment, not human or paid judge validation."
+}
