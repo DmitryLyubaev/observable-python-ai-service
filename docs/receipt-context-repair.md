@@ -39,6 +39,10 @@ wrong-manifest and source-change regressions remain in the verification set.
 
 Candidate canonical verification passed **117 tests in 95.18 seconds**, plus lock,
 lint and format, receipt `verify-fa4fe5f08a2a472fbfa8208c79b0728a`.
+Linux runtime source fingerprint:
+`cb46e62d3fccdfba586f0603a4bc96f0821c98afaadd431b526b0a40dad9dcb6`.
+One fresh read-only review of `faa825b..f140404` found zero Critical, Important or new
+Minor findings. It checked all five focus conditions and the separate follow-up proposal.
 Local integration evidence is recorded below after completion.
 The original 24-submission controlled load experiment was not repeated.
 Full-suite fixtures and transport stubs are offline checks, not new model evaluations.
@@ -58,3 +62,15 @@ Public publication, hosted CI and cloud provisioning remain outside this change.
 The existing deferred Minors remain: explicit follow-up/recovery trace links and
 partial CLI progress retention after timeout/nonzero exit. Neither affects the scope
 of this receipt-context repair.
+
+Review rulings: actual model improvement awaits an approved sample; migration/runtime
+correctness awaits implementation of that proposal; current provider availability and
+real-ledger reconciliation await approved preflight (public rates were rechecked today).
+Those uncertainties can stop the proposed run, not justify a scope/rate change. Existing
+diagnostic Minors stay deferred, so some context still requires persisted-event readback.
+Production-scale readiness is excluded by the user's scope, so no such claim follows.
+Primary integration verification is still required after review; a failed primary check
+would leave the checkout/branch retained. Git worktree fallback was used after the native
+tool rejected this product root; isolation metadata differs, not the implementation.
+The direct proceed instruction authorized this named offline repair and proposal with
+the existing local-main choice, with no paid/public side effects.
